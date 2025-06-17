@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, Camera, Package, X } from 'lucide-react';
+import { Upload, Camera, Package, X, FileImage } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProductImageUploadProps {
@@ -15,6 +15,7 @@ interface ProductImageUploadProps {
 const ProductImageUpload = ({ productId, currentImage, onImageUpdate }: ProductImageUploadProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(currentImage || null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Placeholder images untuk demo
@@ -27,6 +28,39 @@ const ProductImageUpload = ({ productId, currentImage, onImageUpdate }: ProductI
 
   const handleImageSelect = (imageUrl: string) => {
     setSelectedImage(imageUrl);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validasi file
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "File Tidak Valid",
+          description: "Harap pilih file gambar (JPG, PNG, etc.)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (file.size > 2 * 1024 * 1024) { // 2MB
+        toast({
+          title: "File Terlalu Besar",
+          description: "Ukuran file maksimal 2MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Buat URL untuk preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setSelectedImage(e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = () => {
@@ -100,8 +134,19 @@ const ProductImageUpload = ({ productId, currentImage, onImageUpdate }: ProductI
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
                 <p className="text-sm text-gray-600 mb-2">Upload foto produk</p>
-                <Button variant="outline" size="sm" disabled>
-                  <Camera className="h-4 w-4 mr-2" />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <FileImage className="h-4 w-4 mr-2" />
                   Pilih File
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2">

@@ -8,9 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Search, Plus, Pencil, Package, AlertTriangle, Camera, Upload, X } from 'lucide-react';
+import { Search, Plus, Pencil, Package, AlertTriangle, X, FileImage, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/UserContext';
+import BarcodeScanner from '@/components/products/BarcodeScanner';
 
 interface Product {
   id: string;
@@ -52,6 +53,7 @@ const Stock = () => {
   });
 
   const { toast } = useToast();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const categories = ['Sembako', 'Makanan Instan', 'Minuman', 'Kebersihan', 'Snack', 'Frozen Food'];
 
@@ -92,6 +94,44 @@ const Stock = () => {
     low: products.filter(p => p.stock > 0 && p.stock < 10).length,
     normal: products.filter(p => p.stock >= 10 && p.stock <= 50).length,
     abundant: products.filter(p => p.stock > 50).length,
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validasi file
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "File Tidak Valid",
+          description: "Harap pilih file gambar (JPG, PNG, etc.)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (file.size > 2 * 1024 * 1024) { // 2MB
+        toast({
+          title: "File Terlalu Besar",
+          description: "Ukuran file maksimal 2MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Buat URL untuk preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setSelectedImage(e.target.result as string);
+          setNewProduct({...newProduct, image: e.target.result as string});
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBarcodeScanned = (barcode: string) => {
+    setNewProduct({...newProduct, barcode});
   };
 
   const handleAddProduct = () => {
@@ -203,7 +243,10 @@ const Stock = () => {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              onClick={handleRemoveImage}
+                              onClick={() => {
+                                setSelectedImage('');
+                                setNewProduct({...newProduct, image: ''});
+                              }}
                             >
                               <X className="h-4 w-4" />
                             </Button>
@@ -212,8 +255,36 @@ const Stock = () => {
                       </Card>
                     )}
 
+                    {/* File Upload Section */}
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                          <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-600 mb-2">Upload foto dari laptop</p>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <FileImage className="h-4 w-4 mr-2" />
+                            Pilih File
+                          </Button>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Format: JPG, PNG (Max 2MB)
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
                     <div>
-                      <h4 className="text-sm font-medium mb-3">Pilih foto dari galeri:</h4>
+                      <h4 className="text-sm font-medium mb-3">Atau pilih foto dari galeri:</h4>
                       <div className="grid grid-cols-4 gap-2">
                         {placeholderImages.map((image, index) => (
                           <Card 
@@ -221,7 +292,10 @@ const Stock = () => {
                             className={`cursor-pointer transition-all hover:shadow-md ${
                               selectedImage === image ? 'ring-2 ring-primary' : ''
                             }`}
-                            onClick={() => handleSelectImageForNewProduct(image)}
+                            onClick={() => {
+                              setSelectedImage(image);
+                              setNewProduct({...newProduct, image});
+                            }}
                           >
                             <CardContent className="p-2">
                               <div className="aspect-square bg-gray-100 rounded overflow-hidden">
@@ -241,7 +315,10 @@ const Stock = () => {
                       className={`cursor-pointer transition-all hover:shadow-md ${
                         selectedImage === '' ? 'ring-2 ring-primary' : ''
                       }`}
-                      onClick={() => handleSelectImageForNewProduct('')}
+                      onClick={() => {
+                        setSelectedImage('');
+                        setNewProduct({...newProduct, image: ''});
+                      }}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center space-x-3">
@@ -305,12 +382,19 @@ const Stock = () => {
                     </div>
                     <div>
                       <Label htmlFor="barcode">Barcode</Label>
-                      <Input
-                        id="barcode"
-                        value={newProduct.barcode}
-                        onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})}
-                        placeholder="Masukkan barcode"
-                      />
+                      <div className="flex space-x-2">
+                        <Input
+                          id="barcode"
+                          value={newProduct.barcode}
+                          onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})}
+                          placeholder="Masukkan barcode"
+                          className="flex-1"
+                        />
+                        <BarcodeScanner 
+                          onBarcodeScanned={handleBarcodeScanned}
+                          currentBarcode={newProduct.barcode}
+                        />
+                      </div>
                     </div>
                   </div>
 
