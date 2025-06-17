@@ -170,155 +170,157 @@ const Stock = () => {
             <SidebarTrigger />
             <h1 className="text-2xl font-bold">Kelola Stok Produk</h1>
           </div>
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Tambah Produk
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Tambah Produk Baru</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-6">
-                {/* Photo Selection for New Product */}
-                <div className="space-y-4">
-                  <Label>Foto Produk</Label>
-                  {selectedImage && (
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-                            <img 
-                              src={selectedImage} 
-                              alt="Preview" 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">Foto Dipilih</p>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={handleRemoveImage}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  <div>
-                    <h4 className="text-sm font-medium mb-3">Pilih foto dari galeri:</h4>
-                    <div className="grid grid-cols-4 gap-2">
-                      {placeholderImages.map((image, index) => (
-                        <Card 
-                          key={index}
-                          className={`cursor-pointer transition-all hover:shadow-md ${
-                            selectedImage === image ? 'ring-2 ring-primary' : ''
-                          }`}
-                          onClick={() => handleSelectImageForNewProduct(image)}
-                        >
-                          <CardContent className="p-2">
-                            <div className="aspect-square bg-gray-100 rounded overflow-hidden">
+          {isOwner && (
+            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Tambah Produk
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Tambah Produk Baru</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6">
+                  {/* Photo Selection for New Product */}
+                  <div className="space-y-4">
+                    <Label>Foto Produk</Label>
+                    {selectedImage && (
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
                               <img 
-                                src={image} 
-                                alt={`Option ${index + 1}`}
+                                src={selectedImage} 
+                                alt="Preview" 
                                 className="w-full h-full object-cover"
                               />
                             </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">Foto Dipilih</p>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={handleRemoveImage}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    <div>
+                      <h4 className="text-sm font-medium mb-3">Pilih foto dari galeri:</h4>
+                      <div className="grid grid-cols-4 gap-2">
+                        {placeholderImages.map((image, index) => (
+                          <Card 
+                            key={index}
+                            className={`cursor-pointer transition-all hover:shadow-md ${
+                              selectedImage === image ? 'ring-2 ring-primary' : ''
+                            }`}
+                            onClick={() => handleSelectImageForNewProduct(image)}
+                          >
+                            <CardContent className="p-2">
+                              <div className="aspect-square bg-gray-100 rounded overflow-hidden">
+                                <img 
+                                  src={image} 
+                                  alt={`Option ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Card 
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        selectedImage === '' ? 'ring-2 ring-primary' : ''
+                      }`}
+                      onClick={() => handleSelectImageForNewProduct('')}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <Package className="h-6 w-6 text-gray-400" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Tanpa Foto</p>
+                            <p className="text-xs text-muted-foreground">Gunakan icon default</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Product Details */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="name">Nama Produk</Label>
+                      <Input
+                        id="name"
+                        value={newProduct.name}
+                        onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                        placeholder="Masukkan nama produk"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="category">Kategori</Label>
+                      <Select value={newProduct.category} onValueChange={(value) => setNewProduct({...newProduct, category: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih kategori" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map(category => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="price">Harga</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        value={newProduct.price}
+                        onChange={(e) => setNewProduct({...newProduct, price: parseInt(e.target.value) || 0})}
+                        placeholder="Masukkan harga"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="stock">Stok</Label>
+                      <Input
+                        id="stock"
+                        type="number"
+                        value={newProduct.stock}
+                        onChange={(e) => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})}
+                        placeholder="Masukkan stok"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="barcode">Barcode</Label>
+                      <Input
+                        id="barcode"
+                        value={newProduct.barcode}
+                        onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})}
+                        placeholder="Masukkan barcode"
+                      />
                     </div>
                   </div>
 
-                  <Card 
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      selectedImage === '' ? 'ring-2 ring-primary' : ''
-                    }`}
-                    onClick={() => handleSelectImageForNewProduct('')}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <Package className="h-6 w-6 text-gray-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Tanpa Foto</p>
-                          <p className="text-xs text-muted-foreground">Gunakan icon default</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <Button onClick={handleAddProduct} className="w-full">
+                    Tambah Produk
+                  </Button>
                 </div>
-
-                {/* Product Details */}
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Nama Produk</Label>
-                    <Input
-                      id="name"
-                      value={newProduct.name}
-                      onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                      placeholder="Masukkan nama produk"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="category">Kategori</Label>
-                    <Select value={newProduct.category} onValueChange={(value) => setNewProduct({...newProduct, category: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih kategori" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map(category => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="price">Harga</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      value={newProduct.price}
-                      onChange={(e) => setNewProduct({...newProduct, price: parseInt(e.target.value) || 0})}
-                      placeholder="Masukkan harga"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="stock">Stok</Label>
-                    <Input
-                      id="stock"
-                      type="number"
-                      value={newProduct.stock}
-                      onChange={(e) => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})}
-                      placeholder="Masukkan stok"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="barcode">Barcode</Label>
-                    <Input
-                      id="barcode"
-                      value={newProduct.barcode}
-                      onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})}
-                      placeholder="Masukkan barcode"
-                    />
-                  </div>
-                </div>
-
-                <Button onClick={handleAddProduct} className="w-full">
-                  Tambah Produk
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          )}
         </header>
 
         <main className="flex-1 p-6 bg-gray-50">
@@ -329,7 +331,7 @@ const Stock = () => {
                 <div className="flex items-center space-x-2 text-yellow-800">
                   <AlertTriangle className="h-4 w-4" />
                   <p className="text-sm">
-                    <strong>Info:</strong> Sebagai kasir, Anda dapat melihat dan menambah produk, namun hanya pemilik yang dapat mengedit produk yang sudah ada.
+                    <strong>Info:</strong> Sebagai kasir, Anda dapat melihat stok produk, namun hanya pemilik yang dapat menambah atau mengedit produk.
                   </p>
                 </div>
               </CardContent>
