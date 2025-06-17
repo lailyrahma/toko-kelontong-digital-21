@@ -10,13 +10,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { User, Store, Lock, HelpCircle, LogOut, Phone, Mail, MapPin, Edit } from 'lucide-react';
+import { User, Store, Lock, HelpCircle, LogOut, Phone, Mail, MapPin, Edit, AlertTriangle } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
   const { user, store, updateUser, updateStore, logout } = useUser();
+  const isOwner = user?.role === 'pemilik';
+  
   const [editingUser, setEditingUser] = useState(false);
   const [editingStore, setEditingStore] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -51,6 +53,15 @@ const Profile = () => {
   };
 
   const handleStoreUpdate = () => {
+    if (!isOwner) {
+      toast({
+        title: "Akses Ditolak",
+        description: "Hanya pemilik yang dapat mengedit profil toko",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     updateStore(storeForm);
     setEditingStore(false);
     toast({
@@ -94,6 +105,18 @@ const Profile = () => {
       title: "Logout Berhasil",
       description: "Anda telah keluar dari sistem",
     });
+  };
+
+  const handleStoreEditClick = () => {
+    if (!isOwner) {
+      toast({
+        title: "Akses Ditolak",
+        description: "Hanya pemilik yang dapat mengedit profil toko",
+        variant: "destructive",
+      });
+      return;
+    }
+    setEditingStore(!editingStore);
   };
 
   const helpTopics = [
@@ -285,6 +308,20 @@ const Profile = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
+                    {/* Access Control Notice for Store Profile */}
+                    {!isOwner && (
+                      <Card className="border-yellow-200 bg-yellow-50">
+                        <CardContent className="p-4">
+                          <div className="flex items-center space-x-2 text-yellow-800">
+                            <AlertTriangle className="h-4 w-4" />
+                            <p className="text-sm">
+                              <strong>Info:</strong> Hanya pemilik yang dapat mengedit profil toko. Anda hanya dapat melihat informasi toko.
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
                     <div className="flex items-center space-x-4">
                       <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center">
                         <span className="text-2xl font-bold text-white">TB</span>
@@ -292,15 +329,22 @@ const Profile = () => {
                       <div>
                         <h3 className="text-xl font-semibold">{store.name}</h3>
                         <p className="text-muted-foreground">Point of Sale System</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingStore(!editingStore)}
-                          className="mt-2"
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          {editingStore ? 'Batal' : 'Edit Toko'}
-                        </Button>
+                        {isOwner && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleStoreEditClick}
+                            className="mt-2"
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            {editingStore ? 'Batal' : 'Edit Toko'}
+                          </Button>
+                        )}
+                        {!isOwner && (
+                          <div className="mt-2 text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded inline-block">
+                            View Only
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -310,7 +354,7 @@ const Profile = () => {
                       <div className="space-y-4">
                         <div>
                           <Label htmlFor="store-name">Nama Toko</Label>
-                          {editingStore ? (
+                          {editingStore && isOwner ? (
                             <Input
                               id="store-name"
                               value={storeForm.name}
@@ -326,7 +370,7 @@ const Profile = () => {
 
                         <div>
                           <Label htmlFor="store-email">Email Toko</Label>
-                          {editingStore ? (
+                          {editingStore && isOwner ? (
                             <Input
                               id="store-email"
                               type="email"
@@ -345,7 +389,7 @@ const Profile = () => {
                       <div className="space-y-4">
                         <div>
                           <Label htmlFor="store-phone">Telepon Toko</Label>
-                          {editingStore ? (
+                          {editingStore && isOwner ? (
                             <Input
                               id="store-phone"
                               value={storeForm.phone}
@@ -361,7 +405,7 @@ const Profile = () => {
 
                         <div>
                           <Label htmlFor="store-address">Alamat Toko</Label>
-                          {editingStore ? (
+                          {editingStore && isOwner ? (
                             <Input
                               id="store-address"
                               value={storeForm.address}
@@ -377,7 +421,7 @@ const Profile = () => {
                       </div>
                     </div>
 
-                    {editingStore && (
+                    {editingStore && isOwner && (
                       <div className="flex space-x-4">
                         <Button onClick={handleStoreUpdate}>
                           Simpan Perubahan

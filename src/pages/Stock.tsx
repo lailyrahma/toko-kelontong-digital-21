@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Search, Plus, Pencil, Package, AlertTriangle, Camera, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/contexts/UserContext';
 
 interface Product {
   id: string;
@@ -22,6 +23,9 @@ interface Product {
 }
 
 const Stock = () => {
+  const { user } = useUser();
+  const isOwner = user?.role === 'pemilik';
+  
   const [products, setProducts] = useState<Product[]>([
     { id: '1', name: 'Beras Premium 5kg', category: 'Sembako', price: 75000, stock: 20, barcode: '1234567890123', image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=200&h=200&fit=crop' },
     { id: '2', name: 'Minyak Goreng 1L', category: 'Sembako', price: 18000, stock: 5, barcode: '1234567890124', image: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?w=200&h=200&fit=crop' },
@@ -43,7 +47,8 @@ const Stock = () => {
     category: '',
     price: 0,
     stock: 0,
-    barcode: ''
+    barcode: '',
+    image: ''
   });
 
   const { toast } = useToast();
@@ -105,7 +110,8 @@ const Stock = () => {
     };
 
     setProducts([...products, product]);
-    setNewProduct({ name: '', category: '', price: 0, stock: 0, barcode: '' });
+    setNewProduct({ name: '', category: '', price: 0, stock: 0, barcode: '', image: '' });
+    setSelectedImage('');
     setShowAddDialog(false);
     
     toast({
@@ -115,7 +121,7 @@ const Stock = () => {
   };
 
   const handleEditProduct = () => {
-    if (!editingProduct) return;
+    if (!editingProduct || !isOwner) return;
 
     const updatedProduct = { ...editingProduct, image: selectedImage || undefined };
     setProducts(products.map(p => 
@@ -133,6 +139,14 @@ const Stock = () => {
   };
 
   const startEdit = (product: Product) => {
+    if (!isOwner) {
+      toast({
+        title: "Akses Ditolak",
+        description: "Hanya pemilik yang dapat mengedit produk",
+        variant: "destructive",
+      });
+      return;
+    }
     setEditingProduct({ ...product });
     setSelectedImage(product.image || '');
     setShowEditDialog(true);
@@ -140,6 +154,11 @@ const Stock = () => {
 
   const handleRemoveImage = () => {
     setSelectedImage('');
+  };
+
+  const handleSelectImageForNewProduct = (image: string) => {
+    setSelectedImage(image);
+    setNewProduct({...newProduct, image: image});
   };
 
   return (
@@ -158,64 +177,142 @@ const Stock = () => {
                 Tambah Produk
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Tambah Produk Baru</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Nama Produk</Label>
-                  <Input
-                    id="name"
-                    value={newProduct.name}
-                    onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                    placeholder="Masukkan nama produk"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="category">Kategori</Label>
-                  <Select value={newProduct.category} onValueChange={(value) => setNewProduct({...newProduct, category: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(category => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
+              <div className="space-y-6">
+                {/* Photo Selection for New Product */}
+                <div className="space-y-4">
+                  <Label>Foto Produk</Label>
+                  {selectedImage && (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
+                            <img 
+                              src={selectedImage} 
+                              alt="Preview" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">Foto Dipilih</p>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={handleRemoveImage}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <div>
+                    <h4 className="text-sm font-medium mb-3">Pilih foto dari galeri:</h4>
+                    <div className="grid grid-cols-4 gap-2">
+                      {placeholderImages.map((image, index) => (
+                        <Card 
+                          key={index}
+                          className={`cursor-pointer transition-all hover:shadow-md ${
+                            selectedImage === image ? 'ring-2 ring-primary' : ''
+                          }`}
+                          onClick={() => handleSelectImageForNewProduct(image)}
+                        >
+                          <CardContent className="p-2">
+                            <div className="aspect-square bg-gray-100 rounded overflow-hidden">
+                              <img 
+                                src={image} 
+                                alt={`Option ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </div>
+                  </div>
+
+                  <Card 
+                    className={`cursor-pointer transition-all hover:shadow-md ${
+                      selectedImage === '' ? 'ring-2 ring-primary' : ''
+                    }`}
+                    onClick={() => handleSelectImageForNewProduct('')}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <Package className="h-6 w-6 text-gray-400" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Tanpa Foto</p>
+                          <p className="text-xs text-muted-foreground">Gunakan icon default</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-                <div>
-                  <Label htmlFor="price">Harga</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={newProduct.price}
-                    onChange={(e) => setNewProduct({...newProduct, price: parseInt(e.target.value) || 0})}
-                    placeholder="Masukkan harga"
-                  />
+
+                {/* Product Details */}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Nama Produk</Label>
+                    <Input
+                      id="name"
+                      value={newProduct.name}
+                      onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                      placeholder="Masukkan nama produk"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="category">Kategori</Label>
+                    <Select value={newProduct.category} onValueChange={(value) => setNewProduct({...newProduct, category: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih kategori" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="price">Harga</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      value={newProduct.price}
+                      onChange={(e) => setNewProduct({...newProduct, price: parseInt(e.target.value) || 0})}
+                      placeholder="Masukkan harga"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="stock">Stok</Label>
+                    <Input
+                      id="stock"
+                      type="number"
+                      value={newProduct.stock}
+                      onChange={(e) => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})}
+                      placeholder="Masukkan stok"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="barcode">Barcode</Label>
+                    <Input
+                      id="barcode"
+                      value={newProduct.barcode}
+                      onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})}
+                      placeholder="Masukkan barcode"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="stock">Stok</Label>
-                  <Input
-                    id="stock"
-                    type="number"
-                    value={newProduct.stock}
-                    onChange={(e) => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})}
-                    placeholder="Masukkan stok"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="barcode">Barcode</Label>
-                  <Input
-                    id="barcode"
-                    value={newProduct.barcode}
-                    onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})}
-                    placeholder="Masukkan barcode"
-                  />
-                </div>
+
                 <Button onClick={handleAddProduct} className="w-full">
                   Tambah Produk
                 </Button>
@@ -225,6 +322,20 @@ const Stock = () => {
         </header>
 
         <main className="flex-1 p-6 bg-gray-50">
+          {/* Role-based Access Notice */}
+          {!isOwner && (
+            <Card className="mb-6 border-yellow-200 bg-yellow-50">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2 text-yellow-800">
+                  <AlertTriangle className="h-4 w-4" />
+                  <p className="text-sm">
+                    <strong>Info:</strong> Sebagai kasir, Anda dapat melihat dan menambah produk, namun hanya pemilik yang dapat mengedit produk yang sudah ada.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Stock Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <Card>
@@ -325,13 +436,20 @@ const Stock = () => {
                           <Package className="h-10 w-10 text-muted-foreground" />
                         )}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => startEdit(product)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      {isOwner && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEdit(product)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {!isOwner && (
+                        <div className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
+                          View Only
+                        </div>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -376,153 +494,155 @@ const Stock = () => {
           )}
         </main>
 
-        {/* Edit Product Dialog - Now includes image editing */}
-        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Produk</DialogTitle>
-            </DialogHeader>
-            {editingProduct && (
-              <div className="space-y-6">
-                {/* Product Image Section */}
-                <div className="space-y-4">
-                  <Label>Foto Produk</Label>
-                  {selectedImage && (
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-                            <img 
-                              src={selectedImage} 
-                              alt="Preview" 
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">Foto Saat Ini</p>
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={handleRemoveImage}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  <div>
-                    <h4 className="text-sm font-medium mb-3">Pilih foto dari galeri:</h4>
-                    <div className="grid grid-cols-4 gap-2">
-                      {placeholderImages.map((image, index) => (
-                        <Card 
-                          key={index}
-                          className={`cursor-pointer transition-all hover:shadow-md ${
-                            selectedImage === image ? 'ring-2 ring-primary' : ''
-                          }`}
-                          onClick={() => setSelectedImage(image)}
-                        >
-                          <CardContent className="p-2">
-                            <div className="aspect-square bg-gray-100 rounded overflow-hidden">
+        {/* Edit Product Dialog - Only for Owner */}
+        {isOwner && (
+          <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Edit Produk</DialogTitle>
+              </DialogHeader>
+              {editingProduct && (
+                <div className="space-y-6">
+                  {/* Product Image Section */}
+                  <div className="space-y-4">
+                    <Label>Foto Produk</Label>
+                    {selectedImage && (
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
                               <img 
-                                src={image} 
-                                alt={`Option ${index + 1}`}
+                                src={selectedImage} 
+                                alt="Preview" 
                                 className="w-full h-full object-cover"
                               />
                             </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">Foto Saat Ini</p>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={handleRemoveImage}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    <div>
+                      <h4 className="text-sm font-medium mb-3">Pilih foto dari galeri:</h4>
+                      <div className="grid grid-cols-4 gap-2">
+                        {placeholderImages.map((image, index) => (
+                          <Card 
+                            key={index}
+                            className={`cursor-pointer transition-all hover:shadow-md ${
+                              selectedImage === image ? 'ring-2 ring-primary' : ''
+                            }`}
+                            onClick={() => setSelectedImage(image)}
+                          >
+                            <CardContent className="p-2">
+                              <div className="aspect-square bg-gray-100 rounded overflow-hidden">
+                                <img 
+                                  src={image} 
+                                  alt={`Option ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Card 
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        selectedImage === '' ? 'ring-2 ring-primary' : ''
+                      }`}
+                      onClick={() => setSelectedImage('')}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <Package className="h-6 w-6 text-gray-400" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Tanpa Foto</p>
+                            <p className="text-xs text-muted-foreground">Gunakan icon default</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Product Details Section */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-name">Nama Produk</Label>
+                      <Input
+                        id="edit-name"
+                        value={editingProduct.name}
+                        onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-category">Kategori</Label>
+                      <Select value={editingProduct.category} onValueChange={(value) => setEditingProduct({...editingProduct, category: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map(category => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-price">Harga</Label>
+                      <Input
+                        id="edit-price"
+                        type="number"
+                        value={editingProduct.price}
+                        onChange={(e) => setEditingProduct({...editingProduct, price: parseInt(e.target.value) || 0})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-stock">Stok</Label>
+                      <Input
+                        id="edit-stock"
+                        type="number"
+                        value={editingProduct.stock}
+                        onChange={(e) => setEditingProduct({...editingProduct, stock: parseInt(e.target.value) || 0})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-barcode">Barcode</Label>
+                      <Input
+                        id="edit-barcode"
+                        value={editingProduct.barcode}
+                        onChange={(e) => setEditingProduct({...editingProduct, barcode: e.target.value})}
+                      />
                     </div>
                   </div>
 
-                  <Card 
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      selectedImage === '' ? 'ring-2 ring-primary' : ''
-                    }`}
-                    onClick={() => setSelectedImage('')}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <Package className="h-6 w-6 text-gray-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Tanpa Foto</p>
-                          <p className="text-xs text-muted-foreground">Gunakan icon default</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Product Details Section */}
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="edit-name">Nama Produk</Label>
-                    <Input
-                      id="edit-name"
-                      value={editingProduct.name}
-                      onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-category">Kategori</Label>
-                    <Select value={editingProduct.category} onValueChange={(value) => setEditingProduct({...editingProduct, category: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map(category => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-price">Harga</Label>
-                    <Input
-                      id="edit-price"
-                      type="number"
-                      value={editingProduct.price}
-                      onChange={(e) => setEditingProduct({...editingProduct, price: parseInt(e.target.value) || 0})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-stock">Stok</Label>
-                    <Input
-                      id="edit-stock"
-                      type="number"
-                      value={editingProduct.stock}
-                      onChange={(e) => setEditingProduct({...editingProduct, stock: parseInt(e.target.value) || 0})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-barcode">Barcode</Label>
-                    <Input
-                      id="edit-barcode"
-                      value={editingProduct.barcode}
-                      onChange={(e) => setEditingProduct({...editingProduct, barcode: e.target.value})}
-                    />
+                  <div className="flex space-x-2">
+                    <Button variant="outline" onClick={() => setShowEditDialog(false)} className="flex-1">
+                      Batal
+                    </Button>
+                    <Button onClick={handleEditProduct} className="flex-1">
+                      Simpan Perubahan
+                    </Button>
                   </div>
                 </div>
-
-                <div className="flex space-x-2">
-                  <Button variant="outline" onClick={() => setShowEditDialog(false)} className="flex-1">
-                    Batal
-                  </Button>
-                  <Button onClick={handleEditProduct} className="flex-1">
-                    Simpan Perubahan
-                  </Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+              )}
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </>
   );
