@@ -4,7 +4,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { Scan, ShoppingCart, Trash2, X } from 'lucide-react';
+import { Scan, ShoppingCart, Trash2, X, Calculator, Receipt, CreditCard, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ProductCard from '@/components/transaction/ProductCard';
 import CartItem from '@/components/transaction/CartItem';
@@ -35,6 +35,8 @@ const Transaction = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [showMobileCart, setShowMobileCart] = useState(false);
+  const [showMobilePayment, setShowMobilePayment] = useState(false);
+  const [showMobileReceipt, setShowMobileReceipt] = useState(false);
   const { toast } = useToast();
 
   // Sample products with images
@@ -163,6 +165,19 @@ const Transaction = () => {
     setShowPayment(true);
   };
 
+  const handleMobilePayment = () => {
+    if (cartItems.length === 0) {
+      toast({
+        title: "Keranjang Kosong",
+        description: "Tambahkan produk terlebih dahulu",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowMobileCart(false);
+    setShowMobilePayment(true);
+  };
+
   const processPayment = () => {
     const paid = parseFloat(amountPaid) || 0;
     
@@ -176,7 +191,9 @@ const Transaction = () => {
     }
 
     setShowPayment(false);
+    setShowMobilePayment(false);
     setShowReceipt(true);
+    setShowMobileReceipt(true);
     
     toast({
       title: "Transaksi Berhasil",
@@ -184,8 +201,20 @@ const Transaction = () => {
     });
   };
 
+  const cancelPayment = () => {
+    setShowPayment(false);
+    setShowMobilePayment(false);
+    setAmountPaid('');
+    toast({
+      title: "Pembayaran Dibatalkan",
+      description: "Transaksi telah dibatalkan",
+      variant: "destructive",
+    });
+  };
+
   const finishTransaction = () => {
     setShowReceipt(false);
+    setShowMobileReceipt(false);
     clearCart();
     setAmountPaid('');
     toast({
@@ -193,6 +222,9 @@ const Transaction = () => {
       description: "Siap untuk transaksi baru",
     });
   };
+
+  const changeAmount = paymentMethod === 'cash' && amountPaid ? 
+    parseFloat(amountPaid) - totalAmount : 0;
 
   return (
     <>
@@ -400,17 +432,191 @@ const Transaction = () => {
                       </div>
                     </div>
                     <Button 
-                      onClick={() => {
-                        setShowMobileCart(false);
-                        handlePayment();
-                      }} 
+                      onClick={handleMobilePayment}
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 text-lg shadow-lg" 
                       size="lg"
                     >
-                      Bayar Sekarang
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      Lanjut Pembayaran
                     </Button>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Payment Overlay */}
+        {showMobilePayment && (
+          <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+            <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-xl shadow-xl max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b bg-blue-50">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-blue-900">
+                    <Calculator className="inline mr-2 h-5 w-5" />
+                    Pembayaran
+                  </h2>
+                  <Button variant="ghost" size="sm" onClick={cancelPayment} className="text-red-600">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="p-4 space-y-4">
+                <div className="text-center bg-blue-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-1">Total Belanja</p>
+                  <p className="text-2xl font-bold text-blue-900">
+                    Rp {totalAmount.toLocaleString('id-ID')}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Metode Pembayaran</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      variant={paymentMethod === 'cash' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('cash')}
+                      className="flex flex-col h-16"
+                    >
+                      <DollarSign className="h-5 w-5 mb-1" />
+                      Tunai
+                    </Button>
+                    <Button
+                      variant={paymentMethod === 'qris' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('qris')}
+                      className="flex flex-col h-16"
+                    >
+                      <Receipt className="h-5 w-5 mb-1" />
+                      QRIS
+                    </Button>
+                    <Button
+                      variant={paymentMethod === 'debit' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('debit')}
+                      className="flex flex-col h-16"
+                    >
+                      <CreditCard className="h-5 w-5 mb-1" />
+                      Debit
+                    </Button>
+                  </div>
+                </div>
+
+                {paymentMethod === 'cash' && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Jumlah Dibayar</label>
+                    <input
+                      type="number"
+                      placeholder="Masukkan jumlah"
+                      value={amountPaid}
+                      onChange={(e) => setAmountPaid(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                    />
+                    {amountPaid && parseFloat(amountPaid) >= totalAmount && (
+                      <div className="mt-3 p-3 bg-green-50 rounded-lg">
+                        <p className="text-lg font-bold text-green-800">
+                          Kembalian: Rp {changeAmount.toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    )}
+                    {amountPaid && parseFloat(amountPaid) < totalAmount && (
+                      <p className="text-sm text-red-600 mt-2">
+                        Jumlah kurang Rp {(totalAmount - parseFloat(amountPaid)).toLocaleString('id-ID')}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex space-x-2 pt-4">
+                  <Button onClick={cancelPayment} variant="outline" className="flex-1">
+                    Batal
+                  </Button>
+                  <Button 
+                    onClick={processPayment} 
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    disabled={paymentMethod === 'cash' && (!amountPaid || parseFloat(amountPaid) < totalAmount)}
+                  >
+                    Proses Bayar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Receipt Overlay */}
+        {showMobileReceipt && (
+          <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+            <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-xl shadow-xl max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b bg-green-50">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-green-900">
+                    <Receipt className="inline mr-2 h-5 w-5" />
+                    Struk Belanja
+                  </h2>
+                </div>
+              </div>
+
+              <div className="p-4 space-y-4">
+                <div className="text-center border-b pb-4">
+                  <h3 className="font-bold text-lg">Toko Kelontong Barokah</h3>
+                  <p className="text-sm text-gray-600">Jl. Mawar No. 123, Jakarta</p>
+                  <p className="text-sm text-gray-600">Telp: 021-12345678</p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {new Date().toLocaleString('id-ID')}
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  {cartItems.map((item) => (
+                    <div key={item.id} className="flex justify-between text-sm border-b pb-2">
+                      <div>
+                        <span className="font-medium">{item.name}</span>
+                        <div className="text-xs text-gray-500">
+                          {item.quantity} x Rp {item.price.toLocaleString('id-ID')}
+                        </div>
+                      </div>
+                      <span className="font-medium">
+                        Rp {(item.price * item.quantity).toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="border-t pt-3 space-y-2">
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>Total:</span>
+                    <span>Rp {totalAmount.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Metode:</span>
+                    <span className="capitalize">{paymentMethod}</span>
+                  </div>
+                  {paymentMethod === 'cash' && amountPaid && (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span>Dibayar:</span>
+                        <span>Rp {parseFloat(amountPaid).toLocaleString('id-ID')}</span>
+                      </div>
+                      <div className="flex justify-between text-sm font-bold text-green-600">
+                        <span>Kembalian:</span>
+                        <span>Rp {changeAmount.toLocaleString('id-ID')}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex space-x-2 pt-4">
+                  <Button variant="outline" className="flex-1">
+                    <Receipt className="mr-2 h-4 w-4" />
+                    Cetak
+                  </Button>
+                  <Button onClick={finishTransaction} className="flex-1 bg-green-600 hover:bg-green-700">
+                    Selesai
+                  </Button>
+                </div>
+                
+                <div className="text-center pt-2">
+                  <p className="text-xs text-gray-500">Terima kasih atas kunjungan Anda!</p>
+                </div>
               </div>
             </div>
           </div>
