@@ -417,31 +417,6 @@ const Login = () => {
       </div>
     </div>
   );
-
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setForgotLoading(true);
-
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast({
-        title: "Email Terkirim",
-        description: `Link reset password telah dikirim ke ${forgotEmail}`,
-      });
-      
-      setForgotEmail('');
-      setCurrentView('login');
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Gagal mengirim email reset",
-        variant: "destructive",
-      });
-    } finally {
-      setForgotLoading(false);
-    }
-  };
 };
 
 export default Login;
