@@ -20,7 +20,7 @@ interface Store {
 interface UserContextType {
   user: User | null;
   store: Store;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, role: 'kasir' | 'pemilik') => Promise<boolean>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
   updateStore: (storeData: Partial<Store>) => void;
@@ -37,9 +37,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     email: 'tokobarokah@email.com'
   });
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Simulasi login - dalam implementasi nyata, ini akan memanggil API
-    if (email === 'kasir@toko.com' && password === 'kasir123') {
+  const login = async (email: string, password: string, role: 'kasir' | 'pemilik'): Promise<boolean> => {
+    // Simulasi login dengan validasi role
+    if (email === 'kasir@toko.com' && password === 'kasir123' && role === 'kasir') {
       setUser({
         id: '1',
         name: 'Ahmad Kasir',
@@ -49,7 +49,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: 'kasir'
       });
       return true;
-    } else if (email === 'pemilik@toko.com' && password === 'pemilik123') {
+    } else if (email === 'pemilik@toko.com' && password === 'pemilik123' && role === 'pemilik') {
       setUser({
         id: '2',
         name: 'Budi Pemilik',

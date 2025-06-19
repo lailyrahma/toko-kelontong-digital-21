@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, UserCheck } from 'lucide-react';
 
 const Login = () => {
   const [currentView, setCurrentView] = useState<'login' | 'signup' | 'forgot'>('login');
@@ -15,12 +15,14 @@ const Login = () => {
   // Login states
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loginRole, setLoginRole] = useState<'kasir' | 'pemilik'>('kasir');
   const [loading, setLoading] = useState(false);
   
   // Sign up states
   const [signUpName, setSignUpName] = useState('');
   const [signUpEmail, setSignUpEmail] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
+  const [signUpRole, setSignUpRole] = useState<'kasir' | 'pemilik'>('kasir');
   const [signUpLoading, setSignUpLoading] = useState(false);
   
   // Forgot password states
@@ -36,17 +38,17 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const success = await login(email, password);
+      const success = await login(email, password, loginRole);
       if (success) {
         toast({
           title: "Login Berhasil",
-          description: "Selamat datang di dashboard POS!",
+          description: `Selamat datang ${loginRole === 'kasir' ? 'Kasir' : 'Pemilik Toko'}!`,
         });
         navigate('/');
       } else {
         toast({
           title: "Login Gagal",
-          description: "Email atau password salah",
+          description: "Email, password, atau role tidak sesuai",
           variant: "destructive",
         });
       }
@@ -70,12 +72,13 @@ const Login = () => {
       
       toast({
         title: "Registrasi Berhasil",
-        description: "Akun berhasil dibuat. Silakan login.",
+        description: `Akun ${signUpRole} berhasil dibuat. Silakan login.`,
       });
       
       setSignUpName('');
       setSignUpEmail('');
       setSignUpPassword('');
+      setSignUpRole('kasir');
       setCurrentView('login');
     } catch (error) {
       toast({
@@ -135,10 +138,37 @@ const Login = () => {
             <>
               <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Sign in to Toko Barokah</h1>
-                <p className="text-gray-600">or use your email account</p>
+                <p className="text-gray-600">Masuk sesuai dengan role Anda</p>
               </div>
 
               <form onSubmit={handleLogin} className="space-y-6">
+                {/* Role Selection */}
+                <div className="space-y-2">
+                  <Label htmlFor="role" className="text-sm font-medium text-gray-700">
+                    Masuk Sebagai
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant={loginRole === 'kasir' ? 'default' : 'outline'}
+                      onClick={() => setLoginRole('kasir')}
+                      className="flex items-center justify-center p-3 h-auto"
+                    >
+                      <UserCheck className="h-4 w-4 mr-2" />
+                      Kasir
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={loginRole === 'pemilik' ? 'default' : 'outline'}
+                      onClick={() => setLoginRole('pemilik')}
+                      className="flex items-center justify-center p-3 h-auto"
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      Pemilik
+                    </Button>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -221,10 +251,37 @@ const Login = () => {
             <>
               <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-                <p className="text-gray-600">Enter your personal details and start journey with us</p>
+                <p className="text-gray-600">Daftar sesuai dengan role yang diinginkan</p>
               </div>
 
               <form onSubmit={handleSignUp} className="space-y-6">
+                {/* Role Selection */}
+                <div className="space-y-2">
+                  <Label htmlFor="signupRole" className="text-sm font-medium text-gray-700">
+                    Daftar Sebagai
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      type="button"
+                      variant={signUpRole === 'kasir' ? 'default' : 'outline'}
+                      onClick={() => setSignUpRole('kasir')}
+                      className="flex items-center justify-center p-3 h-auto"
+                    >
+                      <UserCheck className="h-4 w-4 mr-2" />
+                      Kasir
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={signUpRole === 'pemilik' ? 'default' : 'outline'}
+                      onClick={() => setSignUpRole('pemilik')}
+                      className="flex items-center justify-center p-3 h-auto"
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      Pemilik
+                    </Button>
+                  </div>
+                </div>
+
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
@@ -360,6 +417,31 @@ const Login = () => {
       </div>
     </div>
   );
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast({
+        title: "Email Terkirim",
+        description: `Link reset password telah dikirim ke ${forgotEmail}`,
+      });
+      
+      setForgotEmail('');
+      setCurrentView('login');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Gagal mengirim email reset",
+        variant: "destructive",
+      });
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 };
 
 export default Login;
