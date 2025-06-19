@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -275,7 +276,7 @@ const Transaction = () => {
 
               <ResizableHandle withHandle />
 
-              {/* Desktop Cart Panel - Simplified */}
+              {/* Desktop Cart Panel */}
               <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
                 <div className="h-full bg-white border-l">
                   <div className="p-4 border-b bg-blue-50">
@@ -356,7 +357,7 @@ const Transaction = () => {
             </div>
           </div>
 
-          {/* Mobile Cart Button - Simplified and More Prominent */}
+          {/* Mobile Cart Button */}
           <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-4 z-10">
             <Button 
               onClick={() => setShowMobileCart(true)}
@@ -377,11 +378,11 @@ const Transaction = () => {
           </div>
         </div>
 
-        {/* Mobile Cart Overlay - Simplified */}
+        {/* Mobile Cart Overlay - Fixed */}
         {showMobileCart && (
           <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-            <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl">
-              <div className="flex items-center justify-between p-4 border-b bg-blue-50">
+            <div className="fixed right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b bg-blue-50 flex-shrink-0">
                 <h2 className="text-lg font-semibold flex items-center text-blue-900">
                   <ShoppingCart className="mr-2 h-5 w-5" />
                   Keranjang ({totalItems})
@@ -403,7 +404,8 @@ const Transaction = () => {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-hidden flex flex-col h-full">
+              {/* Cart Content - Flexible */}
+              <div className="flex-1 flex flex-col min-h-0">
                 <div className="flex-1 p-4 space-y-3 overflow-y-auto">
                   {cartItems.length === 0 ? (
                     <div className="text-center py-12">
@@ -423,24 +425,24 @@ const Transaction = () => {
                   )}
                 </div>
 
-                {cartItems.length > 0 && (
-                  <div className="border-t p-4 bg-white">
-                    <div className="bg-blue-50 p-3 rounded-lg mb-4">
-                      <div className="flex justify-between text-xl font-bold text-blue-900">
-                        <span>Total:</span>
-                        <span>Rp {totalAmount.toLocaleString('id-ID')}</span>
-                      </div>
+                {/* Payment Section - Always Visible */}
+                <div className="border-t p-4 bg-white flex-shrink-0">
+                  <div className="bg-blue-50 p-3 rounded-lg mb-4">
+                    <div className="flex justify-between text-xl font-bold text-blue-900">
+                      <span>Total:</span>
+                      <span>Rp {totalAmount.toLocaleString('id-ID')}</span>
                     </div>
-                    <Button 
-                      onClick={handleMobilePayment}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 text-lg shadow-lg" 
-                      size="lg"
-                    >
-                      <CreditCard className="mr-2 h-5 w-5" />
-                      Lanjut Pembayaran
-                    </Button>
                   </div>
-                )}
+                  <Button 
+                    onClick={handleMobilePayment}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 text-lg shadow-lg" 
+                    size="lg"
+                    disabled={cartItems.length === 0}
+                  >
+                    <CreditCard className="mr-2 h-5 w-5" />
+                    Bayar Sekarang
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
