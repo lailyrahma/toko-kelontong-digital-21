@@ -9,7 +9,8 @@ interface CartItemData {
   name: string;
   price: number;
   quantity: number;
-  stock: number;
+  isBundle?: boolean;
+  maxQuantity?: number;
 }
 
 interface CartItemProps {
@@ -26,7 +27,8 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
   };
 
   const handleIncrease = () => {
-    if (item.quantity < item.stock) {
+    const maxQty = item.maxQuantity || 999;
+    if (item.quantity < maxQty) {
       onUpdateQuantity(item.id, item.quantity + 1);
     }
   };
@@ -37,9 +39,15 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0 pr-2">
             <h4 className="font-semibold text-sm md:text-base line-clamp-2 mb-1">{item.name}</h4>
-            <p className="text-xs text-muted-foreground">
-              Stok tersedia: {item.stock} unit
-            </p>
+            {item.isBundle ? (
+              <p className="text-xs text-muted-foreground">
+                Paket bundling
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Maks: {item.maxQuantity || 999} unit
+              </p>
+            )}
           </div>
           <Button
             variant="ghost"
@@ -83,7 +91,7 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
               variant="ghost"
               size="sm"
               onClick={handleIncrease}
-              disabled={item.quantity >= item.stock}
+              disabled={item.quantity >= (item.maxQuantity || 999)}
               className="h-8 w-8 p-0 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="h-3 w-3" />
@@ -92,9 +100,9 @@ const CartItem = ({ item, onUpdateQuantity, onRemove }: CartItemProps) => {
         </div>
         
         {/* Stock Warning */}
-        {item.quantity >= item.stock && (
+        {item.quantity >= (item.maxQuantity || 999) && (
           <div className="mt-2 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
-            Maksimal stok tercapai
+            Maksimal {item.isBundle ? 'bundling' : 'stok'} tercapai
           </div>
         )}
       </CardContent>
