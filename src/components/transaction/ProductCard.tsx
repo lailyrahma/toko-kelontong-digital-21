@@ -15,27 +15,58 @@ interface Product {
   image?: string;
 }
 
-interface ProductCardProps {
-  product: Product;
-  onAddToCart: (product: Product) => void;
+interface Bundle {
+  id: string;
+  name: string;
+  products: Array<{
+    productId: string;
+    productName: string;
+    quantity: number;
+  }>;
+  price: number;
+  image?: string;
+  isAvailable: boolean;
 }
 
-const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
-  const getStockBadge = (stock: number) => {
-    if (stock === 0) return <Badge variant="destructive" className="stock-empty text-xs">Habis</Badge>;
-    if (stock < 10) return <Badge variant="secondary" className="stock-low text-xs">Sedikit</Badge>;
-    if (stock <= 50) return <Badge variant="secondary" className="stock-normal text-xs">Normal</Badge>;
-    return <Badge variant="secondary" className="stock-abundant text-xs">Banyak</Badge>;
+interface ProductCardProps {
+  product?: Product;
+  bundle?: Bundle;
+  onAddToCart: (item: Product | Bundle) => void;
+}
+
+const ProductCard = ({ product, bundle, onAddToCart }: ProductCardProps) => {
+  const item = product || bundle;
+  if (!item) return null;
+
+  const isBundle = !!bundle;
+  const isAvailable = product ? product.stock > 0 : bundle?.isAvailable || false;
+
+  const getStockBadge = () => {
+    if (isBundle) {
+      return bundle?.isAvailable ? 
+        <Badge variant="secondary" className="text-xs">Tersedia</Badge> : 
+        <Badge variant="destructive" className="text-xs">Tidak Tersedia</Badge>;
+    }
+    
+    if (product) {
+      const stock = product.stock;
+      if (stock === 0) return <Badge variant="destructive" className="stock-empty text-xs">Habis</Badge>;
+      if (stock < 10) return <Badge variant="secondary" className="stock-low text-xs">Sedikit</Badge>;
+      if (stock <= 50) return <Badge variant="secondary" className="stock-normal text-xs">Normal</Badge>;
+      return <Badge variant="secondary" className="stock-abundant text-xs">Banyak</Badge>;
+    }
+    
+    return null;
   };
 
   return (
     <Card className="cursor-pointer hover:shadow-lg transition-shadow">
       <CardContent className="p-3 md:p-4">
         <div className="aspect-square bg-gray-100 rounded-lg mb-2 md:mb-3 flex items-center justify-center overflow-hidden">
-          {product.image ? (
+          {item.image ? (
             <img 
-              src={product.image} 
-              alt={product.name}
+              src={item.image} 
+              alt={item.name}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -43,23 +74,52 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           )}
         </div>
         
-        <h3 className="font-medium mb-1 line-clamp-2 text-sm md:text-base">{product.name}</h3>
-        <p className="text-xs md:text-sm text-muted-foreground mb-2">{product.category}</p>
+        <div className="flex items-start justify-between mb-2">
+          <h3 className="font-medium line-clamp-2 text-sm md:text-base flex-1">{item.name}</h3>
+          {isBundle && (
+            <Badge variant="outline" className="ml-2 text-xs">
+              Bundling
+            </Badge>
+          )}
+        </div>
+        
+        {!isBundle && product && (
+          <p className="text-xs md:text-sm text-muted-foreground mb-2">{product.category}</p>
+        )}
+        
+        {isBundle && bundle && (
+          <p className="text-xs text-muted-foreground mb-2">
+            {bundle.products.length} produk dalam paket
+          </p>
+        )}
+        
         <div className="flex items-center justify-between mb-2">
           <span className="font-bold text-sm md:text-lg">
-            Rp {product.price.toLocaleString('id-ID')}
+            Rp {item.price.toLocaleString('id-ID')}
           </span>
-          {getStockBadge(product.stock)}
+          {getStockBadge()}
         </div>
-        <p className="text-xs text-muted-foreground mb-2 md:mb-3 hidden sm:block">
-          Stok: {product.stock} | Barcode: {product.barcode}
-        </p>
-        <p className="text-xs text-muted-foreground mb-2 md:mb-3 sm:hidden">
-          Stok: {product.stock}
-        </p>
+        
+        {!isBundle && product && (
+          <>
+            <p className="text-xs text-muted-foreground mb-2 md:mb-3 hidden sm:block">
+              Stok: {product.stock} | Barcode: {product.barcode}
+            </p>
+            <p className="text-xs text-muted-foreground mb-2 md:mb-3 sm:hidden">
+              Stok: {product.stock}
+            </p>
+          </>
+        )}
+        
+        {isBundle && bundle && (
+          <p className="text-xs text-muted-foreground mb-2 md:mb-3">
+            {bundle.products.map(p => `${p.productName} (${p.quantity}x)`).join(', ')}
+          </p>
+        )}
+        
         <Button 
-          onClick={() => onAddToCart(product)}
-          disabled={product.stock === 0}
+          onClick={() => onAddToCart(item)}
+          disabled={!isAvailable}
           className="w-full"
           size="sm"
         >
