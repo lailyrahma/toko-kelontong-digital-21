@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import AppSidebar from '@/components/AppSidebar';
@@ -11,10 +10,12 @@ import { useNavigate } from 'react-router-dom';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
 import TransactionHistoryWithFilters from '@/components/transaction/TransactionHistoryWithFilters';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const Dashboard = () => {
   const { user, store } = useUser();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [showTransactionHistory, setShowTransactionHistory] = useState(false);
   const [showSalesDetail, setShowSalesDetail] = useState(false);
   const [showProductDetail, setShowProductDetail] = useState(false);
@@ -199,6 +200,29 @@ const Dashboard = () => {
     }
   };
 
+  const handleWhatsAppAlert = (item: any) => {
+    const message = `🚨 PERINGATAN STOK TOKO ${store.name}
+
+Produk: ${item.name}
+Kategori: ${item.category}
+Status: ${item.status === 'empty' ? 'HABIS' : 'STOK MENIPIS'}
+Stok Tersisa: ${item.stock === 0 ? 'Habis' : `${item.stock} unit`}
+
+Segera lakukan restock untuk menghindari kehilangan penjualan.
+
+Toko: ${store.name}
+Alamat: ${store.address}
+Telepon: ${store.phone}`;
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+    
+    toast({
+      title: "WhatsApp Terbuka",
+      description: "Pesan peringatan stok telah disiapkan di WhatsApp",
+    });
+  };
+
   return (
     <>
       <AppSidebar />
@@ -328,18 +352,28 @@ const Dashboard = () => {
                         <p className="font-medium text-sm md:text-base truncate">{item.name}</p>
                         <p className="text-xs md:text-sm text-muted-foreground">{item.category}</p>
                       </div>
-                      <div className="text-right flex-shrink-0 ml-2">
+                      <div className="text-right flex-shrink-0 ml-2 space-y-1">
                         <p className={`font-medium text-sm md:text-base ${
                           item.status === 'empty' ? 'text-red-600' : 'text-yellow-600'
                         }`}>
                           {item.stock === 0 ? 'Habis' : `${item.stock} tersisa`}
                         </p>
-                        <Badge 
-                          variant={item.status === 'empty' ? 'destructive' : 'secondary'}
-                          className={`text-xs ${item.status === 'empty' ? '' : 'bg-yellow-100 text-yellow-800'}`}
-                        >
-                          {item.status === 'empty' ? 'Habis' : 'Sedikit'}
-                        </Badge>
+                        <div className="flex items-center space-x-1">
+                          <Badge 
+                            variant={item.status === 'empty' ? 'destructive' : 'secondary'}
+                            className={`text-xs ${item.status === 'empty' ? '' : 'bg-yellow-100 text-yellow-800'}`}
+                          >
+                            {item.status === 'empty' ? 'Habis' : 'Sedikit'}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleWhatsAppAlert(item)}
+                            className="h-6 px-2 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                          >
+                            📱 WA
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -89,9 +88,11 @@ const Profile = () => {
 
         <main className="flex-1 p-6 bg-gray-50">
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className={`grid w-full ${user?.role === 'pemilik' ? 'grid-cols-3' : 'grid-cols-2'}`}>
               <TabsTrigger value="profile">Profil Saya</TabsTrigger>
-              <TabsTrigger value="store">Informasi Toko</TabsTrigger>
+              {user?.role === 'pemilik' && (
+                <TabsTrigger value="store">Informasi Toko</TabsTrigger>
+              )}
               {user?.role === 'pemilik' && (
                 <TabsTrigger value="cashiers">Manajemen Kasir</TabsTrigger>
               )}
@@ -193,90 +194,92 @@ const Profile = () => {
               </Card>
             </TabsContent>
 
-            {/* Store Information Tab */}
-            <TabsContent value="store">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Store className="h-5 w-5" />
-                    <span>Informasi Toko</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Kelola informasi dasar toko Anda
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleStoreSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="storeName">Nama Toko</Label>
-                        <div className="relative">
-                          <Store className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input
-                            id="storeName"
-                            type="text"
-                            value={storeForm.name}
-                            onChange={(e) => setStoreForm(prev => ({ ...prev, name: e.target.value }))}
-                            className="pl-10"
-                            placeholder="Masukkan nama toko"
-                          />
+            {/* Store Information Tab - Only for Owner */}
+            {user?.role === 'pemilik' && (
+              <TabsContent value="store">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Store className="h-5 w-5" />
+                      <span>Informasi Toko</span>
+                    </CardTitle>
+                    <CardDescription>
+                      Kelola informasi dasar toko Anda
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleStoreSubmit} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="storeName">Nama Toko</Label>
+                          <div className="relative">
+                            <Store className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              id="storeName"
+                              type="text"
+                              value={storeForm.name}
+                              onChange={(e) => setStoreForm(prev => ({ ...prev, name: e.target.value }))}
+                              className="pl-10"
+                              placeholder="Masukkan nama toko"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="storeEmail">Email Toko</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              id="storeEmail"
+                              type="email"
+                              value={storeForm.email}
+                              onChange={(e) => setStoreForm(prev => ({ ...prev, email: e.target.value }))}
+                              className="pl-10"
+                              placeholder="Masukkan email toko"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="storePhone">Nomor Telepon Toko</Label>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              id="storePhone"
+                              type="tel"
+                              value={storeForm.phone}
+                              onChange={(e) => setStoreForm(prev => ({ ...prev, phone: e.target.value }))}
+                              className="pl-10"
+                              placeholder="Masukkan nomor telepon toko"
+                            />
+                          </div>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="storeEmail">Email Toko</Label>
+                        <Label htmlFor="storeAddress">Alamat Toko</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input
-                            id="storeEmail"
-                            type="email"
-                            value={storeForm.email}
-                            onChange={(e) => setStoreForm(prev => ({ ...prev, email: e.target.value }))}
-                            className="pl-10"
-                            placeholder="Masukkan email toko"
+                          <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <textarea
+                            id="storeAddress"
+                            value={storeForm.address}
+                            onChange={(e) => setStoreForm(prev => ({ ...prev, address: e.target.value }))}
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            rows={3}
+                            placeholder="Masukkan alamat toko lengkap"
                           />
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="storePhone">Nomor Telepon Toko</Label>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input
-                            id="storePhone"
-                            type="tel"
-                            value={storeForm.phone}
-                            onChange={(e) => setStoreForm(prev => ({ ...prev, phone: e.target.value }))}
-                            className="pl-10"
-                            placeholder="Masukkan nomor telepon toko"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="storeAddress">Alamat Toko</Label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <textarea
-                          id="storeAddress"
-                          value={storeForm.address}
-                          onChange={(e) => setStoreForm(prev => ({ ...prev, address: e.target.value }))}
-                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                          rows={3}
-                          placeholder="Masukkan alamat toko lengkap"
-                        />
-                      </div>
-                    </div>
-
-                    <Button type="submit" disabled={loading} className="w-full md:w-auto">
-                      <Save className="h-4 w-4 mr-2" />
-                      {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                      <Button type="submit" disabled={loading} className="w-full md:w-auto">
+                        <Save className="h-4 w-4 mr-2" />
+                        {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
 
             {/* Cashier Management Tab - Only for Owner */}
             {user?.role === 'pemilik' && (

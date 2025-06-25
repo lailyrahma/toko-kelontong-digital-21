@@ -12,150 +12,133 @@ import StatsDetailDialog from '@/components/analytics/StatsDetailDialog';
 const Analytics = () => {
   const [dateRange, setDateRange] = useState('today');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [customDateRange, setCustomDateRange] = useState<{
+    startDate: Date | undefined;
+    endDate: Date | undefined;
+  }>({ startDate: undefined, endDate: undefined });
   const [selectedStat, setSelectedStat] = useState<{type: string, title: string, data: any} | null>(null);
   const [stockPeriod, setStockPeriod] = useState('today');
 
-  // Data penjualan per jam untuk hari ini
-  const getHourlySalesData = () => [
-    { time: '00:00', sales: 0, transactions: 0 },
-    { time: '01:00', sales: 0, transactions: 0 },
-    { time: '02:00', sales: 0, transactions: 0 },
-    { time: '03:00', sales: 0, transactions: 0 },
-    { time: '04:00', sales: 0, transactions: 0 },
-    { time: '05:00', sales: 0, transactions: 0 },
-    { time: '06:00', sales: 0, transactions: 0 },
-    { time: '07:00', sales: 150000, transactions: 3 },
-    { time: '08:00', sales: 280000, transactions: 5 },
-    { time: '09:00', sales: 420000, transactions: 8 },
-    { time: '10:00', sales: 380000, transactions: 7 },
-    { time: '11:00', sales: 450000, transactions: 9 },
-    { time: '12:00', sales: 520000, transactions: 12 },
-    { time: '13:00', sales: 490000, transactions: 11 },
-    { time: '14:00', sales: 380000, transactions: 8 },
-    { time: '15:00', sales: 320000, transactions: 6 },
-    { time: '16:00', sales: 280000, transactions: 5 },
-    { time: '17:00', sales: 350000, transactions: 7 },
-    { time: '18:00', sales: 420000, transactions: 9 },
-    { time: '19:00', sales: 380000, transactions: 8 },
-    { time: '20:00', sales: 290000, transactions: 6 },
-    { time: '21:00', sales: 180000, transactions: 4 },
-    { time: '22:00', sales: 120000, transactions: 2 },
-    { time: '23:00', sales: 50000, transactions: 1 },
-  ];
-
-  // Sample data yang berubah berdasarkan filter
+  // Improved data generation based on period type
   const getSalesData = (range: string) => {
-    const baseData = [
-      { name: 'Senin', sales: 2400000, transactions: 45 },
-      { name: 'Selasa', sales: 1398000, transactions: 32 },
-      { name: 'Rabu', sales: 9800000, transactions: 78 },
-      { name: 'Kamis', sales: 3908000, transactions: 56 },
-      { name: 'Jumat', sales: 4800000, transactions: 67 },
-      { name: 'Sabtu', sales: 3800000, transactions: 89 },
-      { name: 'Minggu', sales: 4300000, transactions: 73 },
-    ];
-
     switch (range) {
       case 'today':
-        return getHourlySalesData();
+        // Per jam untuk hari ini
+        return Array.from({length: 24}, (_, i) => ({
+          name: `${i.toString().padStart(2, '0')}:00`,
+          sales: Math.random() * 500000 + 100000,
+          transactions: Math.floor(Math.random() * 15) + 1
+        }));
+      
       case 'yesterday':
-        return [{ name: 'Kemarin', sales: 2100000, transactions: 19 }];
+        // Per jam untuk kemarin
+        return Array.from({length: 24}, (_, i) => ({
+          name: `${i.toString().padStart(2, '0')}:00`,
+          sales: Math.random() * 450000 + 80000,
+          transactions: Math.floor(Math.random() * 12) + 1
+        }));
+      
       case 'week':
-        return baseData;
+        // Per hari untuk 7 hari terakhir
+        const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+        return days.map(day => ({
+          name: day,
+          sales: Math.random() * 3000000 + 1000000,
+          transactions: Math.floor(Math.random() * 50) + 20
+        }));
+      
       case 'month':
-        return [
-          { name: 'Minggu 1', sales: 15400000, transactions: 156 },
-          { name: 'Minggu 2', sales: 18200000, transactions: 189 },
-          { name: 'Minggu 3', sales: 16800000, transactions: 172 },
-          { name: 'Minggu 4', sales: 19600000, transactions: 203 },
-        ];
+        // Per tanggal untuk 30 hari terakhir
+        return Array.from({length: 30}, (_, i) => ({
+          name: `${i + 1}`,
+          sales: Math.random() * 2500000 + 800000,
+          transactions: Math.floor(Math.random() * 40) + 15
+        }));
+      
+      case 'quarter':
+        // Per bulan untuk 3 bulan terakhir
+        const months3 = ['Bulan 1', 'Bulan 2', 'Bulan 3'];
+        return months3.map(month => ({
+          name: month,
+          sales: Math.random() * 50000000 + 30000000,
+          transactions: Math.floor(Math.random() * 800) + 400
+        }));
+      
       case 'year':
-        return [
-          { name: 'Jan', sales: 45200000, transactions: 567 },
-          { name: 'Feb', sales: 52100000, transactions: 634 },
-          { name: 'Mar', sales: 48900000, transactions: 598 },
-          { name: 'Apr', sales: 51200000, transactions: 623 },
-          { name: 'May', sales: 55800000, transactions: 687 },
-          { name: 'Jun', sales: 49300000, transactions: 612 },
-        ];
+        // Per bulan untuk tahun ini
+        const monthsYear = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return monthsYear.map(month => ({
+          name: month,
+          sales: Math.random() * 60000000 + 40000000,
+          transactions: Math.floor(Math.random() * 1000) + 500
+        }));
+      
+      case 'custom':
+        // Data berdasarkan custom range (contoh per hari)
+        const customDays = Math.abs(
+          Math.floor((customDateRange.endDate?.getTime() || Date.now()) - 
+                    (customDateRange.startDate?.getTime() || Date.now())) / (1000 * 60 * 60 * 24)
+        ) + 1;
+        return Array.from({length: Math.min(customDays, 31)}, (_, i) => ({
+          name: `Hari ${i + 1}`,
+          sales: Math.random() * 2000000 + 800000,
+          transactions: Math.floor(Math.random() * 35) + 10
+        }));
+      
       default:
-        return baseData;
+        return [];
     }
   };
 
-  // Data pergerakan stok berdasarkan periode
+  // Enhanced stock movement data
   const getStockMovementData = (period: string) => {
     switch (period) {
       case 'today':
-        return [
-          { name: '00:00', stockIn: 0, stockOut: 0 },
-          { name: '06:00', stockIn: 20, stockOut: 0 },
-          { name: '08:00', stockIn: 5, stockOut: 15 },
-          { name: '10:00', stockIn: 0, stockOut: 25 },
-          { name: '12:00', stockIn: 0, stockOut: 35 },
-          { name: '14:00', stockIn: 0, stockOut: 20 },
-          { name: '16:00', stockIn: 0, stockOut: 18 },
-          { name: '18:00', stockIn: 0, stockOut: 22 },
-          { name: '20:00', stockIn: 0, stockOut: 15 },
-          { name: '22:00', stockIn: 0, stockOut: 8 },
-        ];
       case 'yesterday':
-        return [
-          { name: '00:00', stockIn: 0, stockOut: 0 },
-          { name: '06:00', stockIn: 15, stockOut: 0 },
-          { name: '08:00', stockIn: 8, stockOut: 12 },
-          { name: '10:00', stockIn: 0, stockOut: 20 },
-          { name: '12:00', stockIn: 0, stockOut: 30 },
-          { name: '14:00', stockIn: 0, stockOut: 18 },
-          { name: '16:00', stockIn: 0, stockOut: 15 },
-          { name: '18:00', stockIn: 0, stockOut: 25 },
-          { name: '20:00', stockIn: 0, stockOut: 12 },
-          { name: '22:00', stockIn: 0, stockOut: 6 },
-        ];
+        return Array.from({length: 24}, (_, i) => ({
+          name: `${i.toString().padStart(2, '0')}:00`,
+          stockIn: Math.floor(Math.random() * 30),
+          stockOut: Math.floor(Math.random() * 25) + 5
+        }));
+      
       case 'week':
-        return [
-          { name: 'Senin', stockIn: 120, stockOut: 89 },
-          { name: 'Selasa', stockIn: 80, stockOut: 110 },
-          { name: 'Rabu', stockIn: 150, stockOut: 120 },
-          { name: 'Kamis', stockIn: 90, stockOut: 95 },
-          { name: 'Jumat', stockIn: 110, stockOut: 130 },
-          { name: 'Sabtu', stockIn: 70, stockOut: 145 },
-          { name: 'Minggu', stockIn: 60, stockOut: 98 },
-        ];
+        const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+        return days.map(day => ({
+          name: day,
+          stockIn: Math.floor(Math.random() * 200) + 50,
+          stockOut: Math.floor(Math.random() * 180) + 70
+        }));
+      
       case 'month':
-        return [
-          { name: 'Minggu 1', stockIn: 1200, stockOut: 890 },
-          { name: 'Minggu 2', stockIn: 800, stockOut: 1100 },
-          { name: 'Minggu 3', stockIn: 1500, stockOut: 1200 },
-          { name: 'Minggu 4', stockIn: 900, stockOut: 950 },
-        ];
+        return Array.from({length: 30}, (_, i) => ({
+          name: `${i + 1}`,
+          stockIn: Math.floor(Math.random() * 150) + 30,
+          stockOut: Math.floor(Math.random() * 120) + 40
+        }));
+      
       case 'year':
-        return [
-          { name: 'Jan', stockIn: 4500, stockOut: 3800 },
-          { name: 'Feb', stockIn: 3200, stockOut: 4200 },
-          { name: 'Mar', stockIn: 5100, stockOut: 4800 },
-          { name: 'Apr', stockIn: 3800, stockOut: 4100 },
-          { name: 'May', stockIn: 4200, stockOut: 4600 },
-          { name: 'Jun', stockIn: 3600, stockOut: 4200 },
-        ];
+        const monthsYear = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return monthsYear.map(month => ({
+          name: month,
+          stockIn: Math.floor(Math.random() * 3000) + 1000,
+          stockOut: Math.floor(Math.random() * 2500) + 1200
+        }));
+      
       default:
-        return [
-          { name: 'Minggu 1', stockIn: 1200, stockOut: 890 },
-          { name: 'Minggu 2', stockIn: 800, stockOut: 1100 },
-          { name: 'Minggu 3', stockIn: 1500, stockOut: 1200 },
-          { name: 'Minggu 4', stockIn: 900, stockOut: 950 },
-        ];
+        return [];
     }
   };
 
   const salesData = getSalesData(dateRange);
   const stockMovement = getStockMovementData(stockPeriod);
 
+  // Enhanced category data including bundling
   const categoryData = [
-    { name: 'Sembako', value: 35, sales: 15750000 },
-    { name: 'Minuman', value: 25, sales: 11250000 },
-    { name: 'Makanan Instan', value: 20, sales: 9000000 },
+    { name: 'Sembako', value: 30, sales: 13500000 },
+    { name: 'Minuman', value: 20, sales: 9000000 },
+    { name: 'Makanan Instan', value: 18, sales: 8100000 },
     { name: 'Kebersihan', value: 15, sales: 6750000 },
+    { name: 'Bundling', value: 12, sales: 5400000 },
     { name: 'Lainnya', value: 5, sales: 2250000 },
   ];
 
@@ -167,7 +150,7 @@ const Analytics = () => {
     { name: 'Sabun Mandi Lifebuoy', sold: 67, revenue: 569500 },
   ];
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
   const getStatsForPeriod = (period: string) => {
     const baseSales = 45200000;
@@ -180,20 +163,20 @@ const Analytics = () => {
       'yesterday': 0.045,
       'week': 0.2,
       'month': 1,
+      'quarter': 3,
       'year': 12,
       'custom': 1
     };
 
     const multiplier = multipliers[period] || 1;
     
-    // Perhitungan persentase performa dibanding periode sebelumnya
     const getPerformanceChange = (current: number, previous: number) => {
       const change = ((current - previous) / previous) * 100;
       return change > 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
     };
 
     const currentSales = baseSales * multiplier;
-    const previousSales = baseSales * multiplier * 0.88; // 12% lebih rendah dari periode sebelumnya
+    const previousSales = baseSales * multiplier * 0.88;
     
     return [
       {
@@ -201,7 +184,7 @@ const Analytics = () => {
         value: `Rp ${(currentSales / 1000000).toFixed(1)} Juta`,
         change: getPerformanceChange(currentSales, previousSales),
         icon: DollarSign,
-        description: period === 'today' ? 'Hari ini' : period === 'week' ? 'Minggu ini' : period === 'month' ? 'Bulan ini' : 'Tahun ini',
+        description: getPeriodDescription(period),
         type: 'sales',
         performance: 'positive'
       },
@@ -210,7 +193,7 @@ const Analytics = () => {
         value: Math.round(baseTransactions * multiplier).toLocaleString(),
         change: '+8.2%',
         icon: ShoppingCart,
-        description: period === 'today' ? 'Hari ini' : period === 'week' ? 'Minggu ini' : period === 'month' ? 'Bulan ini' : 'Tahun ini',
+        description: getPeriodDescription(period),
         type: 'transactions',
         performance: 'positive'
       },
@@ -235,7 +218,18 @@ const Analytics = () => {
     ];
   };
 
-  const stats = getStatsForPeriod(dateRange);
+  const getPeriodDescription = (period: string) => {
+    switch (period) {
+      case 'today': return 'Hari ini';
+      case 'yesterday': return 'Kemarin';
+      case 'week': return '7 hari terakhir';
+      case 'month': return '30 hari terakhir';
+      case 'quarter': return '3 bulan terakhir';
+      case 'year': return 'Tahun ini';
+      case 'custom': return 'Periode custom';
+      default: return 'Periode dipilih';
+    }
+  };
 
   const getPeriodTitle = (period: string) => {
     switch (period) {
@@ -245,21 +239,38 @@ const Analytics = () => {
       case 'month': return '30 Hari Terakhir';
       case 'quarter': return '3 Bulan Terakhir';
       case 'year': return 'Tahun Ini';
-      case 'custom': return 'Custom';
+      case 'custom': return 'Custom Range';
       default: return 'Periode Dipilih';
     }
   };
 
-  const getStockPeriodTitle = (period: string) => {
+  const getChartTimeUnit = (period: string) => {
     switch (period) {
-      case 'today': return 'Hari Ini (Per Jam)';
-      case 'yesterday': return 'Kemarin (Per Jam)';
-      case 'week': return 'Mingguan (Per Hari)';
-      case 'month': return 'Bulanan (Per Minggu)';
-      case 'year': return 'Tahunan (Per Bulan)';
-      default: return 'Periode Dipilih';
+      case 'today':
+      case 'yesterday':
+        return 'Per Jam';
+      case 'week':
+        return 'Per Hari';
+      case 'month':
+        return 'Per Tanggal';
+      case 'quarter':
+      case 'year':
+        return 'Per Bulan';
+      case 'custom':
+        return 'Per Periode';
+      default:
+        return '';
     }
   };
+
+  const stats = getStatsForPeriod(dateRange);
+  const topProducts = [
+    { name: 'Beras Premium 5kg', sold: 125, revenue: 9375000 },
+    { name: 'Minyak Goreng 1L', sold: 89, revenue: 1602000 },
+    { name: 'Paket Hemat Sembako (Bundling)', sold: 45, revenue: 4455000 },
+    { name: 'Indomie Goreng', sold: 234, revenue: 819000 },
+    { name: 'Teh Botol Sosro', sold: 156, revenue: 624000 },
+  ];
 
   const handleStatClick = (stat: any) => {
     setSelectedStat({
@@ -281,15 +292,17 @@ const Analytics = () => {
         </header>
 
         <main className="flex-1 p-3 md:p-6 bg-gray-50 space-y-3 md:space-y-6 min-w-0 overflow-x-hidden">
-          {/* Date Range Filter */}
+          {/* Enhanced Date Range Filter */}
           <DateRangeFilter
             dateRange={dateRange}
             selectedDate={selectedDate}
+            customDateRange={customDateRange}
             onDateRangeChange={setDateRange}
             onDateChange={setSelectedDate}
+            onCustomDateRangeChange={setCustomDateRange}
           />
 
-          {/* Stats Overview - Enhanced with Tooltips */}
+          {/* Stats Overview */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
             {stats.map((stat, index) => (
               <Card 
@@ -333,14 +346,14 @@ const Analytics = () => {
             ))}
           </div>
 
-          {/* Charts Section - Responsive Layout */}
+          {/* Enhanced Charts Section */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 md:gap-6">
-            {/* Sales Chart - Enhanced for Hourly Data */}
+            {/* Sales Chart with Period-Specific Labels */}
             <Card className="xl:col-span-2 min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-base md:text-xl">
                   Tren Penjualan - {getPeriodTitle(dateRange)}
-                  {dateRange === 'today' && <span className="text-sm text-muted-foreground ml-2">(Per Jam)</span>}
+                  <span className="text-sm text-muted-foreground ml-2">({getChartTimeUnit(dateRange)})</span>
                 </CardTitle>
                 <CardDescription className="text-xs md:text-sm">
                   Penjualan untuk periode {getPeriodTitle(dateRange).toLowerCase()}
@@ -352,12 +365,12 @@ const Analytics = () => {
                     <BarChart data={salesData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis 
-                        dataKey={dateRange === 'today' ? 'time' : 'name'}
+                        dataKey="name"
                         fontSize={10}
                         tick={{ fontSize: 8 }}
-                        interval={dateRange === 'today' ? 2 : 0}
-                        angle={dateRange === 'today' ? -45 : -45}
-                        textAnchor="end"
+                        interval={dateRange === 'today' || dateRange === 'yesterday' ? 2 : 0}
+                        angle={dateRange === 'month' ? -45 : 0}
+                        textAnchor={dateRange === 'month' ? 'end' : 'middle'}
                         height={60}
                       />
                       <YAxis 
@@ -377,11 +390,11 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Category Distribution */}
+            {/* Enhanced Category Distribution with Bundling */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-base md:text-xl">Distribusi Kategori</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Penjualan berdasarkan kategori produk</CardDescription>
+                <CardDescription className="text-xs md:text-sm">Penjualan berdasarkan kategori produk termasuk bundling</CardDescription>
               </CardHeader>
               <CardContent className="p-3 md:p-6 pt-0">
                 <div className="h-48 md:h-80 min-w-0">
@@ -408,13 +421,13 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Stock Movement - Enhanced with Period Filter */}
+            {/* Enhanced Stock Movement */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <div className="flex flex-col space-y-2">
                   <CardTitle className="text-base md:text-xl">Pergerakan Stok</CardTitle>
                   <CardDescription className="text-xs md:text-sm">
-                    {getStockPeriodTitle(stockPeriod)}
+                    {getPeriodTitle(stockPeriod)} ({getChartTimeUnit(stockPeriod)})
                   </CardDescription>
                   <select 
                     value={stockPeriod}
@@ -423,9 +436,9 @@ const Analytics = () => {
                   >
                     <option value="today">Hari Ini (Per Jam)</option>
                     <option value="yesterday">Kemarin (Per Jam)</option>
-                    <option value="week">Mingguan (Per Hari)</option>
-                    <option value="month">Bulanan (Per Minggu)</option>
-                    <option value="year">Tahunan (Per Bulan)</option>
+                    <option value="week">7 Hari Terakhir (Per Hari)</option>
+                    <option value="month">30 Hari Terakhir (Per Tanggal)</option>
+                    <option value="year">Tahun Ini (Per Bulan)</option>
                   </select>
                 </div>
               </CardHeader>
@@ -438,8 +451,8 @@ const Analytics = () => {
                         dataKey="name" 
                         fontSize={10}
                         tick={{ fontSize: 8 }}
-                        angle={-45}
-                        textAnchor="end"
+                        angle={stockPeriod === 'month' ? -45 : 0}
+                        textAnchor={stockPeriod === 'month' ? 'end' : 'middle'}
                         height={60}
                       />
                       <YAxis 
@@ -465,13 +478,12 @@ const Analytics = () => {
             selectedDate={selectedDate}
           />
 
-          {/* Lower Section - Responsive Layout */}
+          {/* Lower Section with Enhanced Top Products including Bundling */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
-            {/* Top Products */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-base md:text-xl">Produk Terlaris - {getPeriodTitle(dateRange)}</CardTitle>
-                <CardDescription className="text-xs md:text-sm">5 produk dengan penjualan tertinggi untuk periode ini</CardDescription>
+                <CardDescription className="text-xs md:text-sm">5 produk dengan penjualan tertinggi termasuk bundling</CardDescription>
               </CardHeader>
               <CardContent className="p-3 md:p-6 pt-0">
                 <div className="space-y-2 md:space-y-4">
@@ -496,11 +508,11 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Category Performance */}
+            {/* Enhanced Category Performance with Bundling */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-base md:text-xl">Performa Kategori</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Detail penjualan per kategori</CardDescription>
+                <CardDescription className="text-xs md:text-sm">Detail penjualan per kategori termasuk bundling</CardDescription>
               </CardHeader>
               <CardContent className="p-3 md:p-6 pt-0">
                 <div className="space-y-2 md:space-y-4">

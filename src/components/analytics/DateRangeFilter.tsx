@@ -12,15 +12,22 @@ import { id } from 'date-fns/locale';
 interface DateRangeFilterProps {
   dateRange: string;
   selectedDate: Date | undefined;
+  customDateRange?: {
+    startDate: Date | undefined;
+    endDate: Date | undefined;
+  };
   onDateRangeChange: (value: string) => void;
   onDateChange: (date: Date | undefined) => void;
+  onCustomDateRangeChange?: (range: { startDate: Date | undefined; endDate: Date | undefined }) => void;
 }
 
 const DateRangeFilter = ({ 
   dateRange, 
-  selectedDate, 
+  selectedDate,
+  customDateRange,
   onDateRangeChange, 
-  onDateChange 
+  onDateChange,
+  onCustomDateRangeChange
 }: DateRangeFilterProps) => {
   return (
     <Card>
@@ -33,36 +40,63 @@ const DateRangeFilter = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="today">Hari Ini</SelectItem>
-                <SelectItem value="yesterday">Kemarin</SelectItem>
-                <SelectItem value="week">7 Hari Terakhir</SelectItem>
-                <SelectItem value="month">30 Hari Terakhir</SelectItem>
-                <SelectItem value="quarter">3 Bulan Terakhir</SelectItem>
-                <SelectItem value="year">Tahun Ini</SelectItem>
-                <SelectItem value="custom">Custom</SelectItem>
+                <SelectItem value="today">Hari Ini (Per Jam)</SelectItem>
+                <SelectItem value="yesterday">Kemarin (Per Jam)</SelectItem>
+                <SelectItem value="week">7 Hari Terakhir (Per Hari)</SelectItem>
+                <SelectItem value="month">30 Hari Terakhir (Per Tanggal)</SelectItem>
+                <SelectItem value="quarter">3 Bulan Terakhir (Per Bulan)</SelectItem>
+                <SelectItem value="year">Tahun Ini (Per Bulan)</SelectItem>
+                <SelectItem value="custom">Custom Range</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           {dateRange === 'custom' && (
-            <div>
-              <label className="text-sm font-medium mb-2 block">Pilih Tanggal</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, 'PPP', { locale: id }) : 'Pilih tanggal'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={onDateChange}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Tanggal Mulai</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {customDateRange?.startDate ? format(customDateRange.startDate, 'dd/MM/yyyy', { locale: id }) : 'Pilih'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={customDateRange?.startDate}
+                      onSelect={(date) => onCustomDateRangeChange?.({ 
+                        startDate: date, 
+                        endDate: customDateRange?.endDate 
+                      })}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Tanggal Akhir</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {customDateRange?.endDate ? format(customDateRange.endDate, 'dd/MM/yyyy', { locale: id }) : 'Pilih'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={customDateRange?.endDate}
+                      onSelect={(date) => onCustomDateRangeChange?.({ 
+                        startDate: customDateRange?.startDate, 
+                        endDate: date 
+                      })}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           )}
         </div>
