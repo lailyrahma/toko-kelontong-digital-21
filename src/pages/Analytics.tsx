@@ -1,315 +1,548 @@
-
 import React, { useState } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Download, 
-  Filter,
-  Calendar,
-  BarChart3,
-  PieChart as PieChartIcon,
-  Activity
-} from 'lucide-react';
-import EnhancedDateRangeFilter from '@/components/analytics/EnhancedDateRangeFilter';
-import DashboardMetrics from '@/components/analytics/DashboardMetrics';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, ShoppingCart, Package, DollarSign, Info } from 'lucide-react';
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import DateRangeFilter from '@/components/analytics/DateRangeFilter';
+import AnalyticsTransactionHistory from '@/components/analytics/AnalyticsTransactionHistory';
+import StatsDetailDialog from '@/components/analytics/StatsDetailDialog';
 
 const Analytics = () => {
   const [dateRange, setDateRange] = useState('today');
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined);
-  const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedStat, setSelectedStat] = useState<{type: string, title: string, data: any} | null>(null);
+  const [stockPeriod, setStockPeriod] = useState('today');
 
-  // Generate sample data based on selected period
-  const generateSalesData = () => {
-    switch (dateRange) {
+  // Data penjualan per jam untuk hari ini
+  const getHourlySalesData = () => [
+    { time: '00:00', sales: 0, transactions: 0 },
+    { time: '01:00', sales: 0, transactions: 0 },
+    { time: '02:00', sales: 0, transactions: 0 },
+    { time: '03:00', sales: 0, transactions: 0 },
+    { time: '04:00', sales: 0, transactions: 0 },
+    { time: '05:00', sales: 0, transactions: 0 },
+    { time: '06:00', sales: 0, transactions: 0 },
+    { time: '07:00', sales: 150000, transactions: 3 },
+    { time: '08:00', sales: 280000, transactions: 5 },
+    { time: '09:00', sales: 420000, transactions: 8 },
+    { time: '10:00', sales: 380000, transactions: 7 },
+    { time: '11:00', sales: 450000, transactions: 9 },
+    { time: '12:00', sales: 520000, transactions: 12 },
+    { time: '13:00', sales: 490000, transactions: 11 },
+    { time: '14:00', sales: 380000, transactions: 8 },
+    { time: '15:00', sales: 320000, transactions: 6 },
+    { time: '16:00', sales: 280000, transactions: 5 },
+    { time: '17:00', sales: 350000, transactions: 7 },
+    { time: '18:00', sales: 420000, transactions: 9 },
+    { time: '19:00', sales: 380000, transactions: 8 },
+    { time: '20:00', sales: 290000, transactions: 6 },
+    { time: '21:00', sales: 180000, transactions: 4 },
+    { time: '22:00', sales: 120000, transactions: 2 },
+    { time: '23:00', sales: 50000, transactions: 1 },
+  ];
+
+  // Sample data yang berubah berdasarkan filter
+  const getSalesData = (range: string) => {
+    const baseData = [
+      { name: 'Senin', sales: 2400000, transactions: 45 },
+      { name: 'Selasa', sales: 1398000, transactions: 32 },
+      { name: 'Rabu', sales: 9800000, transactions: 78 },
+      { name: 'Kamis', sales: 3908000, transactions: 56 },
+      { name: 'Jumat', sales: 4800000, transactions: 67 },
+      { name: 'Sabtu', sales: 3800000, transactions: 89 },
+      { name: 'Minggu', sales: 4300000, transactions: 73 },
+    ];
+
+    switch (range) {
       case 'today':
+        return getHourlySalesData();
       case 'yesterday':
-        // Hourly data for today/yesterday
-        return Array.from({ length: 24 }, (_, i) => ({
-          time: `${i.toString().padStart(2, '0')}:00`,
-          penjualan: Math.floor(Math.random() * 500000) + 100000,
-          transaksi: Math.floor(Math.random() * 20) + 5,
-          profit: Math.floor(Math.random() * 150000) + 30000
-        }));
-        
+        return [{ name: 'Kemarin', sales: 2100000, transactions: 19 }];
       case 'week':
+        return baseData;
       case 'month':
-        // Daily data for week/month
-        const days = dateRange === 'week' ? 7 : 30;
-        return Array.from({ length: days }, (_, i) => ({
-          time: `Hari ${i + 1}`,
-          penjualan: Math.floor(Math.random() * 2000000) + 500000,
-          transaksi: Math.floor(Math.random() * 50) + 20,
-          profit: Math.floor(Math.random() * 600000) + 150000
-        }));
-        
-      case 'quarter':
+        return [
+          { name: 'Minggu 1', sales: 15400000, transactions: 156 },
+          { name: 'Minggu 2', sales: 18200000, transactions: 189 },
+          { name: 'Minggu 3', sales: 16800000, transactions: 172 },
+          { name: 'Minggu 4', sales: 19600000, transactions: 203 },
+        ];
       case 'year':
-        // Monthly data for quarter/year
-        const months = dateRange === 'quarter' ? 3 : 12;
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-        return Array.from({ length: months }, (_, i) => ({
-          time: monthNames[i],
-          penjualan: Math.floor(Math.random() * 10000000) + 5000000,
-          transaksi: Math.floor(Math.random() * 500) + 200,
-          profit: Math.floor(Math.random() * 3000000) + 1500000
-        }));
-        
+        return [
+          { name: 'Jan', sales: 45200000, transactions: 567 },
+          { name: 'Feb', sales: 52100000, transactions: 634 },
+          { name: 'Mar', sales: 48900000, transactions: 598 },
+          { name: 'Apr', sales: 51200000, transactions: 623 },
+          { name: 'May', sales: 55800000, transactions: 687 },
+          { name: 'Jun', sales: 49300000, transactions: 612 },
+        ];
       default:
-        return [];
+        return baseData;
     }
   };
 
-  const salesData = generateSalesData();
-
-  const productSalesData = [
-    { name: 'Beras Premium', value: 450000, percentage: 28.5 },
-    { name: 'Minyak Goreng', value: 320000, percentage: 20.3 },
-    { name: 'Gula Pasir', value: 280000, percentage: 17.8 },
-    { name: 'Indomie Goreng', value: 250000, percentage: 15.9 },
-    { name: 'Paket Sembako', value: 200000, percentage: 12.7 },
-    { name: 'Lainnya', value: 80000, percentage: 4.8 }
-  ];
-
-  const stockMovementData = [
-    { name: 'Beras Premium', masuk: 100, keluar: 85, sisa: 15 },
-    { name: 'Minyak Goreng', masuk: 50, keluar: 45, sisa: 5 },
-    { name: 'Gula Pasir', masuk: 75, keluar: 75, sisa: 0 },
-    { name: 'Indomie Goreng', masuk: 200, keluar: 100, sisa: 100 },
-    { name: 'Teh Botol', masuk: 24, keluar: 16, sisa: 8 }
-  ];
-
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
-
-  const getTimeLabel = () => {
-    switch (dateRange) {
+  // Data pergerakan stok berdasarkan periode
+  const getStockMovementData = (period: string) => {
+    switch (period) {
       case 'today':
+        return [
+          { name: '00:00', stockIn: 0, stockOut: 0 },
+          { name: '06:00', stockIn: 20, stockOut: 0 },
+          { name: '08:00', stockIn: 5, stockOut: 15 },
+          { name: '10:00', stockIn: 0, stockOut: 25 },
+          { name: '12:00', stockIn: 0, stockOut: 35 },
+          { name: '14:00', stockIn: 0, stockOut: 20 },
+          { name: '16:00', stockIn: 0, stockOut: 18 },
+          { name: '18:00', stockIn: 0, stockOut: 22 },
+          { name: '20:00', stockIn: 0, stockOut: 15 },
+          { name: '22:00', stockIn: 0, stockOut: 8 },
+        ];
       case 'yesterday':
-        return 'Jam';
+        return [
+          { name: '00:00', stockIn: 0, stockOut: 0 },
+          { name: '06:00', stockIn: 15, stockOut: 0 },
+          { name: '08:00', stockIn: 8, stockOut: 12 },
+          { name: '10:00', stockIn: 0, stockOut: 20 },
+          { name: '12:00', stockIn: 0, stockOut: 30 },
+          { name: '14:00', stockIn: 0, stockOut: 18 },
+          { name: '16:00', stockIn: 0, stockOut: 15 },
+          { name: '18:00', stockIn: 0, stockOut: 25 },
+          { name: '20:00', stockIn: 0, stockOut: 12 },
+          { name: '22:00', stockIn: 0, stockOut: 6 },
+        ];
       case 'week':
+        return [
+          { name: 'Senin', stockIn: 120, stockOut: 89 },
+          { name: 'Selasa', stockIn: 80, stockOut: 110 },
+          { name: 'Rabu', stockIn: 150, stockOut: 120 },
+          { name: 'Kamis', stockIn: 90, stockOut: 95 },
+          { name: 'Jumat', stockIn: 110, stockOut: 130 },
+          { name: 'Sabtu', stockIn: 70, stockOut: 145 },
+          { name: 'Minggu', stockIn: 60, stockOut: 98 },
+        ];
       case 'month':
-        return 'Hari';
-      case 'quarter':
+        return [
+          { name: 'Minggu 1', stockIn: 1200, stockOut: 890 },
+          { name: 'Minggu 2', stockIn: 800, stockOut: 1100 },
+          { name: 'Minggu 3', stockIn: 1500, stockOut: 1200 },
+          { name: 'Minggu 4', stockIn: 900, stockOut: 950 },
+        ];
       case 'year':
-        return 'Bulan';
+        return [
+          { name: 'Jan', stockIn: 4500, stockOut: 3800 },
+          { name: 'Feb', stockIn: 3200, stockOut: 4200 },
+          { name: 'Mar', stockIn: 5100, stockOut: 4800 },
+          { name: 'Apr', stockIn: 3800, stockOut: 4100 },
+          { name: 'May', stockIn: 4200, stockOut: 4600 },
+          { name: 'Jun', stockIn: 3600, stockOut: 4200 },
+        ];
       default:
-        return 'Periode';
+        return [
+          { name: 'Minggu 1', stockIn: 1200, stockOut: 890 },
+          { name: 'Minggu 2', stockIn: 800, stockOut: 1100 },
+          { name: 'Minggu 3', stockIn: 1500, stockOut: 1200 },
+          { name: 'Minggu 4', stockIn: 900, stockOut: 950 },
+        ];
     }
+  };
+
+  const salesData = getSalesData(dateRange);
+  const stockMovement = getStockMovementData(stockPeriod);
+
+  const categoryData = [
+    { name: 'Sembako', value: 35, sales: 15750000 },
+    { name: 'Minuman', value: 25, sales: 11250000 },
+    { name: 'Makanan Instan', value: 20, sales: 9000000 },
+    { name: 'Kebersihan', value: 15, sales: 6750000 },
+    { name: 'Lainnya', value: 5, sales: 2250000 },
+  ];
+
+  const topProducts = [
+    { name: 'Beras Premium 5kg', sold: 125, revenue: 9375000 },
+    { name: 'Minyak Goreng 1L', sold: 89, revenue: 1602000 },
+    { name: 'Indomie Goreng', sold: 234, revenue: 819000 },
+    { name: 'Teh Botol Sosro', sold: 156, revenue: 624000 },
+    { name: 'Sabun Mandi Lifebuoy', sold: 67, revenue: 569500 },
+  ];
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
+  const getStatsForPeriod = (period: string) => {
+    const baseSales = 45200000;
+    const baseTransactions = 1234;
+    const baseProducts = 8945;
+    const baseAverage = 36650;
+
+    const multipliers: { [key: string]: number } = {
+      'today': 0.05,
+      'yesterday': 0.045,
+      'week': 0.2,
+      'month': 1,
+      'year': 12,
+      'custom': 1
+    };
+
+    const multiplier = multipliers[period] || 1;
+    
+    // Perhitungan persentase performa dibanding periode sebelumnya
+    const getPerformanceChange = (current: number, previous: number) => {
+      const change = ((current - previous) / previous) * 100;
+      return change > 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
+    };
+
+    const currentSales = baseSales * multiplier;
+    const previousSales = baseSales * multiplier * 0.88; // 12% lebih rendah dari periode sebelumnya
+    
+    return [
+      {
+        title: 'Total Penjualan',
+        value: `Rp ${(currentSales / 1000000).toFixed(1)} Juta`,
+        change: getPerformanceChange(currentSales, previousSales),
+        icon: DollarSign,
+        description: period === 'today' ? 'Hari ini' : period === 'week' ? 'Minggu ini' : period === 'month' ? 'Bulan ini' : 'Tahun ini',
+        type: 'sales',
+        performance: 'positive'
+      },
+      {
+        title: 'Total Transaksi',
+        value: Math.round(baseTransactions * multiplier).toLocaleString(),
+        change: '+8.2%',
+        icon: ShoppingCart,
+        description: period === 'today' ? 'Hari ini' : period === 'week' ? 'Minggu ini' : period === 'month' ? 'Bulan ini' : 'Tahun ini',
+        type: 'transactions',
+        performance: 'positive'
+      },
+      {
+        title: 'Produk Terjual',
+        value: Math.round(baseProducts * multiplier).toLocaleString(),
+        change: '+15.3%',
+        icon: Package,
+        description: 'Unit terjual',
+        type: 'products',
+        performance: 'positive'
+      },
+      {
+        title: 'Rata-rata per Transaksi',
+        value: `Rp ${baseAverage.toLocaleString()}`,
+        change: '+4.1%',
+        icon: TrendingUp,
+        description: 'Per transaksi',
+        type: 'average',
+        performance: 'positive'
+      }
+    ];
+  };
+
+  const stats = getStatsForPeriod(dateRange);
+
+  const getPeriodTitle = (period: string) => {
+    switch (period) {
+      case 'today': return 'Hari Ini';
+      case 'yesterday': return 'Kemarin';
+      case 'week': return '7 Hari Terakhir';
+      case 'month': return '30 Hari Terakhir';
+      case 'quarter': return '3 Bulan Terakhir';
+      case 'year': return 'Tahun Ini';
+      case 'custom': return 'Custom';
+      default: return 'Periode Dipilih';
+    }
+  };
+
+  const getStockPeriodTitle = (period: string) => {
+    switch (period) {
+      case 'today': return 'Hari Ini (Per Jam)';
+      case 'yesterday': return 'Kemarin (Per Jam)';
+      case 'week': return 'Mingguan (Per Hari)';
+      case 'month': return 'Bulanan (Per Minggu)';
+      case 'year': return 'Tahunan (Per Bulan)';
+      default: return 'Periode Dipilih';
+    }
+  };
+
+  const handleStatClick = (stat: any) => {
+    setSelectedStat({
+      type: stat.type,
+      title: stat.title,
+      data: stat
+    });
   };
 
   return (
-    <>
+    <TooltipProvider>
       <AppSidebar />
-      <div className="flex-1 flex flex-col">
-        <header className="flex items-center justify-between p-6 border-b bg-white">
-          <div className="flex items-center space-x-4">
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="flex items-center justify-between p-3 md:p-6 border-b bg-white">
+          <div className="flex items-center space-x-2 md:space-x-4 min-w-0">
             <SidebarTrigger />
-            <h1 className="text-2xl font-bold">Analisis Penjualan</h1>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              <Filter className="mr-2 h-4 w-4" />
-              Filter
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
+            <h1 className="text-lg md:text-2xl font-bold truncate">Analytics & Insights</h1>
           </div>
         </header>
 
-        <main className="flex-1 p-6 bg-gray-50 space-y-6">
-          {/* Enhanced Date Range Filter */}
-          <EnhancedDateRangeFilter
+        <main className="flex-1 p-3 md:p-6 bg-gray-50 space-y-3 md:space-y-6 min-w-0 overflow-x-hidden">
+          {/* Date Range Filter */}
+          <DateRangeFilter
             dateRange={dateRange}
             selectedDate={selectedDate}
-            customStartDate={customStartDate}
-            customEndDate={customEndDate}
             onDateRangeChange={setDateRange}
             onDateChange={setSelectedDate}
-            onCustomStartDateChange={setCustomStartDate}
-            onCustomEndDateChange={setCustomEndDate}
           />
 
-          {/* Dashboard Metrics */}
-          <DashboardMetrics period={dateRange} />
+          {/* Stats Overview - Enhanced with Tooltips */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+            {stats.map((stat, index) => (
+              <Card 
+                key={index} 
+                className="min-w-0 cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => handleStatClick(stat)}
+              >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
+                  <CardTitle className="text-xs md:text-sm font-medium truncate pr-2">
+                    {stat.title}
+                  </CardTitle>
+                  <div className="flex items-center space-x-1">
+                    <stat.icon className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
+                    <UITooltip>
+                      <TooltipTrigger>
+                        <Info className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">
+                          Persentase dibanding periode sebelumnya
+                        </p>
+                      </TooltipContent>
+                    </UITooltip>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-3 md:p-6 pt-0">
+                  <div className="text-base md:text-2xl font-bold truncate">{stat.value}</div>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs text-muted-foreground truncate">
+                      {stat.description}
+                    </p>
+                    <div className="flex items-center space-x-1">
+                      <div className={`w-2 h-2 rounded-full ${stat.performance === 'positive' ? 'bg-green-500' : 'bg-red-500'}`} />
+                      <span className={`text-xs font-medium flex-shrink-0 ml-1 ${stat.performance === 'positive' ? 'text-green-600' : 'text-red-600'}`}>
+                        {stat.change}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-          {/* Sales Trend Chart */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center space-x-2">
-                  <BarChart3 className="h-5 w-5" />
-                  <span>Tren Penjualan {getTimeLabel() === 'Jam' ? 'per Jam' : `per ${getTimeLabel()}`}</span>
+          {/* Charts Section - Responsive Layout */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 md:gap-6">
+            {/* Sales Chart - Enhanced for Hourly Data */}
+            <Card className="xl:col-span-2 min-w-0">
+              <CardHeader className="p-3 md:p-6">
+                <CardTitle className="text-base md:text-xl">
+                  Tren Penjualan - {getPeriodTitle(dateRange)}
+                  {dateRange === 'today' && <span className="text-sm text-muted-foreground ml-2">(Per Jam)</span>}
                 </CardTitle>
-                <Badge variant="outline" className="flex items-center space-x-1">
-                  <Activity className="h-3 w-3" />
-                  <span>Real-time</span>
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={salesData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="time" 
-                      tick={{ fontSize: 12 }}
-                      angle={dateRange === 'today' || dateRange === 'yesterday' ? -45 : 0}
-                      textAnchor={dateRange === 'today' || dateRange === 'yesterday' ? 'end' : 'middle'}
-                    />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
-                      tickFormatter={(value) => `${value / 1000}K`}
-                    />
-                    <Tooltip 
-                      formatter={(value: number, name: string) => [
-                        `Rp ${value.toLocaleString('id-ID')}`,
-                        name === 'penjualan' ? 'Penjualan' : name === 'profit' ? 'Profit' : 'Transaksi'
-                      ]}
-                      labelFormatter={(label) => `${getTimeLabel()}: ${label}`}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="penjualan" 
-                      stroke="#2563eb" 
-                      strokeWidth={2}
-                      dot={{ r: 4 }}
-                      activeDot={{ r: 6 }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="profit" 
-                      stroke="#16a34a" 
-                      strokeWidth={2}
-                      dot={{ r: 4 }}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Top Products */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <PieChartIcon className="h-5 w-5" />
-                  <span>Produk Terlaris</span>
-                </CardTitle>
+                <CardDescription className="text-xs md:text-sm">
+                  Penjualan untuk periode {getPeriodTitle(dateRange).toLowerCase()}
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="h-64">
+              <CardContent className="p-3 md:p-6 pt-0">
+                <div className="h-48 md:h-80 min-w-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={salesData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey={dateRange === 'today' ? 'time' : 'name'}
+                        fontSize={10}
+                        tick={{ fontSize: 8 }}
+                        interval={dateRange === 'today' ? 2 : 0}
+                        angle={dateRange === 'today' ? -45 : -45}
+                        textAnchor="end"
+                        height={60}
+                      />
+                      <YAxis 
+                        fontSize={10}
+                        tick={{ fontSize: 8 }}
+                        tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+                      />
+                      <Tooltip 
+                        formatter={(value) => [`Rp ${value.toLocaleString('id-ID')}`, 'Penjualan']}
+                        labelStyle={{ fontSize: '10px' }}
+                        contentStyle={{ fontSize: '10px' }}
+                      />
+                      <Bar dataKey="sales" fill="#3b82f6" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Category Distribution */}
+            <Card className="min-w-0">
+              <CardHeader className="p-3 md:p-6">
+                <CardTitle className="text-base md:text-xl">Distribusi Kategori</CardTitle>
+                <CardDescription className="text-xs md:text-sm">Penjualan berdasarkan kategori produk</CardDescription>
+              </CardHeader>
+              <CardContent className="p-3 md:p-6 pt-0">
+                <div className="h-48 md:h-80 min-w-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={productSalesData}
+                        data={categoryData}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percentage }) => `${name} ${percentage}%`}
-                        outerRadius={80}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={60}
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {productSalesData.map((entry, index) => (
+                        {categoryData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: number) => [`Rp ${value.toLocaleString('id-ID')}`, 'Penjualan']} />
+                      <Tooltip contentStyle={{ fontSize: '10px' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Stock Movement */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <BarChart3 className="h-5 w-5" />
-                  <span>Pergerakan Stok</span>
-                </CardTitle>
+            {/* Stock Movement - Enhanced with Period Filter */}
+            <Card className="min-w-0">
+              <CardHeader className="p-3 md:p-6">
+                <div className="flex flex-col space-y-2">
+                  <CardTitle className="text-base md:text-xl">Pergerakan Stok</CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
+                    {getStockPeriodTitle(stockPeriod)}
+                  </CardDescription>
+                  <select 
+                    value={stockPeriod}
+                    onChange={(e) => setStockPeriod(e.target.value)}
+                    className="text-xs border rounded px-2 py-1 w-full max-w-xs"
+                  >
+                    <option value="today">Hari Ini (Per Jam)</option>
+                    <option value="yesterday">Kemarin (Per Jam)</option>
+                    <option value="week">Mingguan (Per Hari)</option>
+                    <option value="month">Bulanan (Per Minggu)</option>
+                    <option value="year">Tahunan (Per Bulan)</option>
+                  </select>
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="h-64">
+              <CardContent className="p-3 md:p-6 pt-0">
+                <div className="h-48 md:h-80 min-w-0">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={stockMovementData}>
+                    <LineChart data={stockMovement} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis 
                         dataKey="name" 
-                        tick={{ fontSize: 11 }}
+                        fontSize={10}
+                        tick={{ fontSize: 8 }}
                         angle={-45}
                         textAnchor="end"
                         height={60}
                       />
-                      <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip />
-                      <Bar dataKey="masuk" fill="#22c55e" name="Masuk" />
-                      <Bar dataKey="keluar" fill="#ef4444" name="Keluar" />
-                      <Bar dataKey="sisa" fill="#3b82f6" name="Sisa" />
-                    </BarChart>
+                      <YAxis 
+                        fontSize={10}
+                        tick={{ fontSize: 8 }}
+                      />
+                      <Tooltip 
+                        labelStyle={{ fontSize: '10px' }}
+                        contentStyle={{ fontSize: '10px' }}
+                      />
+                      <Line type="monotone" dataKey="stockIn" stroke="#00C49F" name="Stok Masuk" strokeWidth={2} />
+                      <Line type="monotone" dataKey="stockOut" stroke="#FF8042" name="Stok Keluar" strokeWidth={2} />
+                    </LineChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Transaction Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Performa Transaksi per {getTimeLabel()}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={salesData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="time" 
-                      tick={{ fontSize: 12 }}
-                      angle={dateRange === 'today' || dateRange === 'yesterday' ? -45 : 0}
-                      textAnchor={dateRange === 'today' || dateRange === 'yesterday' ? 'end' : 'middle'}
-                    />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip 
-                      formatter={(value: number, name: string) => [
-                        name === 'transaksi' ? `${value} transaksi` : `Rp ${value.toLocaleString('id-ID')}`,
-                        name === 'transaksi' ? 'Jumlah Transaksi' : 'Total Penjualan'
-                      ]}
-                      labelFormatter={(label) => `${getTimeLabel()}: ${label}`}
-                    />
-                    <Bar dataKey="transaksi" fill="#8884d8" name="transaksi" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Riwayat Transaksi */}
+          <AnalyticsTransactionHistory
+            dateRange={dateRange}
+            selectedDate={selectedDate}
+          />
+
+          {/* Lower Section - Responsive Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
+            {/* Top Products */}
+            <Card className="min-w-0">
+              <CardHeader className="p-3 md:p-6">
+                <CardTitle className="text-base md:text-xl">Produk Terlaris - {getPeriodTitle(dateRange)}</CardTitle>
+                <CardDescription className="text-xs md:text-sm">5 produk dengan penjualan tertinggi untuk periode ini</CardDescription>
+              </CardHeader>
+              <CardContent className="p-3 md:p-6 pt-0">
+                <div className="space-y-2 md:space-y-4">
+                  {topProducts.map((product, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 md:p-4 bg-gray-50 rounded-lg min-w-0">
+                      <div className="flex items-center space-x-2 md:space-x-4 min-w-0 flex-1">
+                        <div className="w-5 h-5 md:w-8 md:h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                          {index + 1}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-xs md:text-base truncate">{product.name}</p>
+                          <p className="text-xs text-muted-foreground">{product.sold} unit terjual</p>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-2">
+                        <p className="font-bold text-xs md:text-base">Rp {product.revenue.toLocaleString('id-ID')}</p>
+                        <p className="text-xs text-muted-foreground">Revenue</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Category Performance */}
+            <Card className="min-w-0">
+              <CardHeader className="p-3 md:p-6">
+                <CardTitle className="text-base md:text-xl">Performa Kategori</CardTitle>
+                <CardDescription className="text-xs md:text-sm">Detail penjualan per kategori</CardDescription>
+              </CardHeader>
+              <CardContent className="p-3 md:p-6 pt-0">
+                <div className="space-y-2 md:space-y-4">
+                  {categoryData.map((category, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 md:p-4 border rounded-lg min-w-0">
+                      <div className="flex items-center space-x-2 md:space-x-4 min-w-0 flex-1">
+                        <div
+                          className="w-2 h-2 md:w-4 md:h-4 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-xs md:text-base truncate">{category.name}</p>
+                          <p className="text-xs text-muted-foreground">{category.value}% dari total penjualan</p>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0 ml-2">
+                        <p className="font-bold text-xs md:text-base">Rp {category.sales.toLocaleString('id-ID')}</p>
+                        <div className="w-12 md:w-24 bg-gray-200 rounded-full h-1.5 md:h-2 mt-1">
+                          <div
+                            className="bg-primary h-1.5 md:h-2 rounded-full transition-all"
+                            style={{ width: `${category.value}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </main>
       </div>
-    </>
+
+      {/* Stats Detail Dialog */}
+      <StatsDetailDialog
+        isOpen={!!selectedStat}
+        onClose={() => setSelectedStat(null)}
+        title={selectedStat?.title || ''}
+        data={selectedStat?.data}
+        type={selectedStat?.type as any}
+      />
+    </TooltipProvider>
   );
 };
 
