@@ -3,7 +3,8 @@ import AppSidebar from '@/components/AppSidebar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, ShoppingCart, Package, DollarSign } from 'lucide-react';
+import { TrendingUp, ShoppingCart, Package, DollarSign, Info } from 'lucide-react';
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import DateRangeFilter from '@/components/analytics/DateRangeFilter';
 import AnalyticsTransactionHistory from '@/components/analytics/AnalyticsTransactionHistory';
 import StatsDetailDialog from '@/components/analytics/StatsDetailDialog';
@@ -12,6 +13,35 @@ const Analytics = () => {
   const [dateRange, setDateRange] = useState('today');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedStat, setSelectedStat] = useState<{type: string, title: string, data: any} | null>(null);
+  const [stockPeriod, setStockPeriod] = useState('today');
+
+  // Data penjualan per jam untuk hari ini
+  const getHourlySalesData = () => [
+    { time: '00:00', sales: 0, transactions: 0 },
+    { time: '01:00', sales: 0, transactions: 0 },
+    { time: '02:00', sales: 0, transactions: 0 },
+    { time: '03:00', sales: 0, transactions: 0 },
+    { time: '04:00', sales: 0, transactions: 0 },
+    { time: '05:00', sales: 0, transactions: 0 },
+    { time: '06:00', sales: 0, transactions: 0 },
+    { time: '07:00', sales: 150000, transactions: 3 },
+    { time: '08:00', sales: 280000, transactions: 5 },
+    { time: '09:00', sales: 420000, transactions: 8 },
+    { time: '10:00', sales: 380000, transactions: 7 },
+    { time: '11:00', sales: 450000, transactions: 9 },
+    { time: '12:00', sales: 520000, transactions: 12 },
+    { time: '13:00', sales: 490000, transactions: 11 },
+    { time: '14:00', sales: 380000, transactions: 8 },
+    { time: '15:00', sales: 320000, transactions: 6 },
+    { time: '16:00', sales: 280000, transactions: 5 },
+    { time: '17:00', sales: 350000, transactions: 7 },
+    { time: '18:00', sales: 420000, transactions: 9 },
+    { time: '19:00', sales: 380000, transactions: 8 },
+    { time: '20:00', sales: 290000, transactions: 6 },
+    { time: '21:00', sales: 180000, transactions: 4 },
+    { time: '22:00', sales: 120000, transactions: 2 },
+    { time: '23:00', sales: 50000, transactions: 1 },
+  ];
 
   // Sample data yang berubah berdasarkan filter
   const getSalesData = (range: string) => {
@@ -27,7 +57,7 @@ const Analytics = () => {
 
     switch (range) {
       case 'today':
-        return [{ name: 'Hari Ini', sales: 2450000, transactions: 23 }];
+        return getHourlySalesData();
       case 'yesterday':
         return [{ name: 'Kemarin', sales: 2100000, transactions: 19 }];
       case 'week':
@@ -53,7 +83,73 @@ const Analytics = () => {
     }
   };
 
+  // Data pergerakan stok berdasarkan periode
+  const getStockMovementData = (period: string) => {
+    switch (period) {
+      case 'today':
+        return [
+          { name: '00:00', stockIn: 0, stockOut: 0 },
+          { name: '06:00', stockIn: 20, stockOut: 0 },
+          { name: '08:00', stockIn: 5, stockOut: 15 },
+          { name: '10:00', stockIn: 0, stockOut: 25 },
+          { name: '12:00', stockIn: 0, stockOut: 35 },
+          { name: '14:00', stockIn: 0, stockOut: 20 },
+          { name: '16:00', stockIn: 0, stockOut: 18 },
+          { name: '18:00', stockIn: 0, stockOut: 22 },
+          { name: '20:00', stockIn: 0, stockOut: 15 },
+          { name: '22:00', stockIn: 0, stockOut: 8 },
+        ];
+      case 'yesterday':
+        return [
+          { name: '00:00', stockIn: 0, stockOut: 0 },
+          { name: '06:00', stockIn: 15, stockOut: 0 },
+          { name: '08:00', stockIn: 8, stockOut: 12 },
+          { name: '10:00', stockIn: 0, stockOut: 20 },
+          { name: '12:00', stockIn: 0, stockOut: 30 },
+          { name: '14:00', stockIn: 0, stockOut: 18 },
+          { name: '16:00', stockIn: 0, stockOut: 15 },
+          { name: '18:00', stockIn: 0, stockOut: 25 },
+          { name: '20:00', stockIn: 0, stockOut: 12 },
+          { name: '22:00', stockIn: 0, stockOut: 6 },
+        ];
+      case 'week':
+        return [
+          { name: 'Senin', stockIn: 120, stockOut: 89 },
+          { name: 'Selasa', stockIn: 80, stockOut: 110 },
+          { name: 'Rabu', stockIn: 150, stockOut: 120 },
+          { name: 'Kamis', stockIn: 90, stockOut: 95 },
+          { name: 'Jumat', stockIn: 110, stockOut: 130 },
+          { name: 'Sabtu', stockIn: 70, stockOut: 145 },
+          { name: 'Minggu', stockIn: 60, stockOut: 98 },
+        ];
+      case 'month':
+        return [
+          { name: 'Minggu 1', stockIn: 1200, stockOut: 890 },
+          { name: 'Minggu 2', stockIn: 800, stockOut: 1100 },
+          { name: 'Minggu 3', stockIn: 1500, stockOut: 1200 },
+          { name: 'Minggu 4', stockIn: 900, stockOut: 950 },
+        ];
+      case 'year':
+        return [
+          { name: 'Jan', stockIn: 4500, stockOut: 3800 },
+          { name: 'Feb', stockIn: 3200, stockOut: 4200 },
+          { name: 'Mar', stockIn: 5100, stockOut: 4800 },
+          { name: 'Apr', stockIn: 3800, stockOut: 4100 },
+          { name: 'May', stockIn: 4200, stockOut: 4600 },
+          { name: 'Jun', stockIn: 3600, stockOut: 4200 },
+        ];
+      default:
+        return [
+          { name: 'Minggu 1', stockIn: 1200, stockOut: 890 },
+          { name: 'Minggu 2', stockIn: 800, stockOut: 1100 },
+          { name: 'Minggu 3', stockIn: 1500, stockOut: 1200 },
+          { name: 'Minggu 4', stockIn: 900, stockOut: 950 },
+        ];
+    }
+  };
+
   const salesData = getSalesData(dateRange);
+  const stockMovement = getStockMovementData(stockPeriod);
 
   const categoryData = [
     { name: 'Sembako', value: 35, sales: 15750000 },
@@ -69,13 +165,6 @@ const Analytics = () => {
     { name: 'Indomie Goreng', sold: 234, revenue: 819000 },
     { name: 'Teh Botol Sosro', sold: 156, revenue: 624000 },
     { name: 'Sabun Mandi Lifebuoy', sold: 67, revenue: 569500 },
-  ];
-
-  const stockMovement = [
-    { name: 'Minggu 1', stockIn: 1200, stockOut: 890 },
-    { name: 'Minggu 2', stockIn: 800, stockOut: 1100 },
-    { name: 'Minggu 3', stockIn: 1500, stockOut: 1200 },
-    { name: 'Minggu 4', stockIn: 900, stockOut: 950 },
   ];
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
@@ -97,14 +186,24 @@ const Analytics = () => {
 
     const multiplier = multipliers[period] || 1;
     
+    // Perhitungan persentase performa dibanding periode sebelumnya
+    const getPerformanceChange = (current: number, previous: number) => {
+      const change = ((current - previous) / previous) * 100;
+      return change > 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
+    };
+
+    const currentSales = baseSales * multiplier;
+    const previousSales = baseSales * multiplier * 0.88; // 12% lebih rendah dari periode sebelumnya
+    
     return [
       {
         title: 'Total Penjualan',
-        value: `Rp ${(baseSales * multiplier / 1000000).toFixed(1)} Juta`,
-        change: '+12.5%',
+        value: `Rp ${(currentSales / 1000000).toFixed(1)} Juta`,
+        change: getPerformanceChange(currentSales, previousSales),
         icon: DollarSign,
         description: period === 'today' ? 'Hari ini' : period === 'week' ? 'Minggu ini' : period === 'month' ? 'Bulan ini' : 'Tahun ini',
-        type: 'sales'
+        type: 'sales',
+        performance: 'positive'
       },
       {
         title: 'Total Transaksi',
@@ -112,7 +211,8 @@ const Analytics = () => {
         change: '+8.2%',
         icon: ShoppingCart,
         description: period === 'today' ? 'Hari ini' : period === 'week' ? 'Minggu ini' : period === 'month' ? 'Bulan ini' : 'Tahun ini',
-        type: 'transactions'
+        type: 'transactions',
+        performance: 'positive'
       },
       {
         title: 'Produk Terjual',
@@ -120,7 +220,8 @@ const Analytics = () => {
         change: '+15.3%',
         icon: Package,
         description: 'Unit terjual',
-        type: 'products'
+        type: 'products',
+        performance: 'positive'
       },
       {
         title: 'Rata-rata per Transaksi',
@@ -128,7 +229,8 @@ const Analytics = () => {
         change: '+4.1%',
         icon: TrendingUp,
         description: 'Per transaksi',
-        type: 'average'
+        type: 'average',
+        performance: 'positive'
       }
     ];
   };
@@ -148,6 +250,17 @@ const Analytics = () => {
     }
   };
 
+  const getStockPeriodTitle = (period: string) => {
+    switch (period) {
+      case 'today': return 'Hari Ini (Per Jam)';
+      case 'yesterday': return 'Kemarin (Per Jam)';
+      case 'week': return 'Mingguan (Per Hari)';
+      case 'month': return 'Bulanan (Per Minggu)';
+      case 'year': return 'Tahunan (Per Bulan)';
+      default: return 'Periode Dipilih';
+    }
+  };
+
   const handleStatClick = (stat: any) => {
     setSelectedStat({
       type: stat.type,
@@ -157,7 +270,7 @@ const Analytics = () => {
   };
 
   return (
-    <>
+    <TooltipProvider>
       <AppSidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <header className="flex items-center justify-between p-3 md:p-6 border-b bg-white">
@@ -176,7 +289,7 @@ const Analytics = () => {
             onDateChange={setSelectedDate}
           />
 
-          {/* Stats Overview - Now Clickable */}
+          {/* Stats Overview - Enhanced with Tooltips */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
             {stats.map((stat, index) => (
               <Card 
@@ -188,7 +301,19 @@ const Analytics = () => {
                   <CardTitle className="text-xs md:text-sm font-medium truncate pr-2">
                     {stat.title}
                   </CardTitle>
-                  <stat.icon className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
+                  <div className="flex items-center space-x-1">
+                    <stat.icon className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
+                    <UITooltip>
+                      <TooltipTrigger>
+                        <Info className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">
+                          Persentase dibanding periode sebelumnya
+                        </p>
+                      </TooltipContent>
+                    </UITooltip>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-3 md:p-6 pt-0">
                   <div className="text-base md:text-2xl font-bold truncate">{stat.value}</div>
@@ -196,9 +321,12 @@ const Analytics = () => {
                     <p className="text-xs text-muted-foreground truncate">
                       {stat.description}
                     </p>
-                    <span className="text-xs text-green-600 font-medium flex-shrink-0 ml-1">
-                      {stat.change}
-                    </span>
+                    <div className="flex items-center space-x-1">
+                      <div className={`w-2 h-2 rounded-full ${stat.performance === 'positive' ? 'bg-green-500' : 'bg-red-500'}`} />
+                      <span className={`text-xs font-medium flex-shrink-0 ml-1 ${stat.performance === 'positive' ? 'text-green-600' : 'text-red-600'}`}>
+                        {stat.change}
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -207,10 +335,13 @@ const Analytics = () => {
 
           {/* Charts Section - Responsive Layout */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 md:gap-6">
-            {/* Sales Chart */}
+            {/* Sales Chart - Enhanced for Hourly Data */}
             <Card className="xl:col-span-2 min-w-0">
               <CardHeader className="p-3 md:p-6">
-                <CardTitle className="text-base md:text-xl">Trend Penjualan - {getPeriodTitle(dateRange)}</CardTitle>
+                <CardTitle className="text-base md:text-xl">
+                  Tren Penjualan - {getPeriodTitle(dateRange)}
+                  {dateRange === 'today' && <span className="text-sm text-muted-foreground ml-2">(Per Jam)</span>}
+                </CardTitle>
                 <CardDescription className="text-xs md:text-sm">
                   Penjualan untuk periode {getPeriodTitle(dateRange).toLowerCase()}
                 </CardDescription>
@@ -221,11 +352,11 @@ const Analytics = () => {
                     <BarChart data={salesData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis 
-                        dataKey="name" 
+                        dataKey={dateRange === 'today' ? 'time' : 'name'}
                         fontSize={10}
                         tick={{ fontSize: 8 }}
-                        interval={0}
-                        angle={-45}
+                        interval={dateRange === 'today' ? 2 : 0}
+                        angle={dateRange === 'today' ? -45 : -45}
                         textAnchor="end"
                         height={60}
                       />
@@ -277,11 +408,26 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Stock Movement */}
+            {/* Stock Movement - Enhanced with Period Filter */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
-                <CardTitle className="text-base md:text-xl">Pergerakan Stok</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Stok masuk vs stok keluar per minggu</CardDescription>
+                <div className="flex flex-col space-y-2">
+                  <CardTitle className="text-base md:text-xl">Pergerakan Stok</CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
+                    {getStockPeriodTitle(stockPeriod)}
+                  </CardDescription>
+                  <select 
+                    value={stockPeriod}
+                    onChange={(e) => setStockPeriod(e.target.value)}
+                    className="text-xs border rounded px-2 py-1 w-full max-w-xs"
+                  >
+                    <option value="today">Hari Ini (Per Jam)</option>
+                    <option value="yesterday">Kemarin (Per Jam)</option>
+                    <option value="week">Mingguan (Per Hari)</option>
+                    <option value="month">Bulanan (Per Minggu)</option>
+                    <option value="year">Tahunan (Per Bulan)</option>
+                  </select>
+                </div>
               </CardHeader>
               <CardContent className="p-3 md:p-6 pt-0">
                 <div className="h-48 md:h-80 min-w-0">
@@ -292,6 +438,9 @@ const Analytics = () => {
                         dataKey="name" 
                         fontSize={10}
                         tick={{ fontSize: 8 }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
                       />
                       <YAxis 
                         fontSize={10}
@@ -393,7 +542,7 @@ const Analytics = () => {
         data={selectedStat?.data}
         type={selectedStat?.type as any}
       />
-    </>
+    </TooltipProvider>
   );
 };
 

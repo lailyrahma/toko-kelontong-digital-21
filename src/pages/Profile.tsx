@@ -7,140 +7,74 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { User, Store, Lock, HelpCircle, LogOut, Phone, Mail, MapPin, Edit, AlertTriangle } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { User, Store, Phone, Mail, MapPin, Save } from 'lucide-react';
+import CashierManagement from '@/components/cashier/CashierManagement';
 
 const Profile = () => {
-  const { user, store, updateUser, updateStore, logout } = useUser();
-  const isOwner = user?.role === 'pemilik';
+  const { user, store, updateUser, updateStore } = useUser();
+  const { toast } = useToast();
   
-  const [editingUser, setEditingUser] = useState(false);
-  const [editingStore, setEditingStore] = useState(false);
-  const [showChangePassword, setShowChangePassword] = useState(false);
   const [userForm, setUserForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    address: user?.address || '',
+    address: user?.address || ''
   });
+
   const [storeForm, setStoreForm] = useState({
     name: store.name,
     address: store.address,
     phone: store.phone,
-    email: store.email,
-  });
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    email: store.email
   });
 
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const handleUserUpdate = () => {
-    updateUser(userForm);
-    setEditingUser(false);
-    toast({
-      title: "Profil Diperbarui",
-      description: "Data profil Anda berhasil diperbarui",
-    });
-  };
+  const handleUserSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const handleStoreUpdate = () => {
-    if (!isOwner) {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      updateUser(userForm);
       toast({
-        title: "Akses Ditolak",
-        description: "Hanya pemilik yang dapat mengedit profil toko",
+        title: "Berhasil",
+        description: "Profil pengguna berhasil diperbarui",
+      });
+    } catch (error) {
+      toast({
+        title: "Kesalahan",
+        description: "Gagal memperbarui profil pengguna",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setLoading(false);
     }
-    
-    updateStore(storeForm);
-    setEditingStore(false);
-    toast({
-      title: "Profil Toko Diperbarui",
-      description: "Data toko berhasil diperbarui",
-    });
   };
 
-  const handlePasswordChange = () => {
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+  const handleStoreSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      updateStore(storeForm);
       toast({
-        title: "Password Tidak Cocok",
-        description: "Password baru dan konfirmasi password tidak sama",
+        title: "Berhasil",
+        description: "Informasi toko berhasil diperbarui",
+      });
+    } catch (error) {
+      toast({
+        title: "Kesalahan",
+        description: "Gagal memperbarui informasi toko",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    if (passwordForm.newPassword.length < 6) {
-      toast({
-        title: "Password Terlalu Pendek",
-        description: "Password minimal 6 karakter",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Simulasi change password
-    setShowChangePassword(false);
-    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    toast({
-      title: "Password Diubah",
-      description: "Password Anda berhasil diubah",
-    });
   };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-    toast({
-      title: "Logout Berhasil",
-      description: "Anda telah keluar dari sistem",
-    });
-  };
-
-  const handleStoreEditClick = () => {
-    if (!isOwner) {
-      toast({
-        title: "Akses Ditolak",
-        description: "Hanya pemilik yang dapat mengedit profil toko",
-        variant: "destructive",
-      });
-      return;
-    }
-    setEditingStore(!editingStore);
-  };
-
-  const helpTopics = [
-    {
-      title: "Cara menggunakan fitur scan barcode",
-      description: "Panduan lengkap menggunakan scanner barcode untuk input produk"
-    },
-    {
-      title: "Cara mengelola stok produk",
-      description: "Tutorial menambah, mengedit, dan memantau stok produk"
-    },
-    {
-      title: "Cara mencetak struk pembayaran",
-      description: "Panduan mencetak dan mengelola struk transaksi"
-    },
-    {
-      title: "Cara membaca laporan analytics",
-      description: "Memahami data penjualan dan insight bisnis"
-    },
-    {
-      title: "Troubleshooting masalah umum",
-      description: "Solusi untuk masalah yang sering terjadi"
-    }
-  ];
 
   return (
     <>
@@ -151,397 +85,206 @@ const Profile = () => {
             <SidebarTrigger />
             <h1 className="text-2xl font-bold">Profil & Pengaturan</h1>
           </div>
-          <div className="flex items-center space-x-2">
-            <Badge variant="secondary" className="capitalize">
-              {user?.role}
-            </Badge>
-          </div>
         </header>
 
         <main className="flex-1 p-6 bg-gray-50">
-          <div className="max-w-4xl mx-auto">
-            <Tabs defaultValue="user" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="user" className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>Profil Pengguna</span>
-                </TabsTrigger>
-                <TabsTrigger value="store" className="flex items-center space-x-2">
-                  <Store className="h-4 w-4" />
-                  <span>Profil Toko</span>
-                </TabsTrigger>
-                <TabsTrigger value="security" className="flex items-center space-x-2">
-                  <Lock className="h-4 w-4" />
-                  <span>Keamanan</span>
-                </TabsTrigger>
-                <TabsTrigger value="help" className="flex items-center space-x-2">
-                  <HelpCircle className="h-4 w-4" />
-                  <span>Bantuan</span>
-                </TabsTrigger>
-              </TabsList>
+          <Tabs defaultValue="profile" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="profile">Profil Saya</TabsTrigger>
+              <TabsTrigger value="store">Informasi Toko</TabsTrigger>
+              {user?.role === 'pemilik' && (
+                <TabsTrigger value="cashiers">Manajemen Kasir</TabsTrigger>
+              )}
+            </TabsList>
 
-              {/* User Profile Tab */}
-              <TabsContent value="user">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Profil Pengguna</CardTitle>
-                    <CardDescription>
-                      Kelola informasi personal Anda
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center">
-                        <span className="text-2xl font-bold text-white">
-                          {user?.name.charAt(0)}
-                        </span>
+            {/* User Profile Tab */}
+            <TabsContent value="profile">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <User className="h-5 w-5" />
+                    <span>Profil Pengguna</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Kelola informasi profil pribadi Anda
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleUserSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="userName">Nama Lengkap</Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="userName"
+                            type="text"
+                            value={userForm.name}
+                            onChange={(e) => setUserForm(prev => ({ ...prev, name: e.target.value }))}
+                            className="pl-10"
+                            placeholder="Masukkan nama lengkap"
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-xl font-semibold">{user?.name}</h3>
-                        <p className="text-muted-foreground capitalize">{user?.role}</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingUser(!editingUser)}
-                          className="mt-2"
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          {editingUser ? 'Batal' : 'Edit Profil'}
-                        </Button>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="userEmail">Email</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="userEmail"
+                            type="email"
+                            value={userForm.email}
+                            onChange={(e) => setUserForm(prev => ({ ...prev, email: e.target.value }))}
+                            className="pl-10"
+                            placeholder="Masukkan email"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="userPhone">Nomor Telepon</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="userPhone"
+                            type="tel"
+                            value={userForm.phone}
+                            onChange={(e) => setUserForm(prev => ({ ...prev, phone: e.target.value }))}
+                            className="pl-10"
+                            placeholder="Masukkan nomor telepon"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="userRole">Peran</Label>
+                        <Input
+                          id="userRole"
+                          type="text"
+                          value={user?.role === 'kasir' ? 'Kasir' : 'Pemilik'}
+                          disabled
+                          className="bg-gray-100"
+                        />
                       </div>
                     </div>
 
-                    <Separator />
+                    <div className="space-y-2">
+                      <Label htmlFor="userAddress">Alamat</Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <textarea
+                          id="userAddress"
+                          value={userForm.address}
+                          onChange={(e) => setUserForm(prev => ({ ...prev, address: e.target.value }))}
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          rows={3}
+                          placeholder="Masukkan alamat lengkap"
+                        />
+                      </div>
+                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="name">Nama Lengkap</Label>
-                          {editingUser ? (
-                            <Input
-                              id="name"
-                              value={userForm.name}
-                              onChange={(e) => setUserForm({...userForm, name: e.target.value})}
-                            />
-                          ) : (
-                            <div className="flex items-center space-x-2 mt-1">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                              <span>{user?.name}</span>
-                            </div>
-                          )}
-                        </div>
+                    <Button type="submit" disabled={loading} className="w-full md:w-auto">
+                      <Save className="h-4 w-4 mr-2" />
+                      {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-                        <div>
-                          <Label htmlFor="email">Email</Label>
-                          {editingUser ? (
-                            <Input
-                              id="email"
-                              type="email"
-                              value={userForm.email}
-                              onChange={(e) => setUserForm({...userForm, email: e.target.value})}
-                            />
-                          ) : (
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Mail className="h-4 w-4 text-muted-foreground" />
-                              <span>{user?.email}</span>
-                            </div>
-                          )}
+            {/* Store Information Tab */}
+            <TabsContent value="store">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Store className="h-5 w-5" />
+                    <span>Informasi Toko</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Kelola informasi dasar toko Anda
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleStoreSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="storeName">Nama Toko</Label>
+                        <div className="relative">
+                          <Store className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="storeName"
+                            type="text"
+                            value={storeForm.name}
+                            onChange={(e) => setStoreForm(prev => ({ ...prev, name: e.target.value }))}
+                            className="pl-10"
+                            placeholder="Masukkan nama toko"
+                          />
                         </div>
                       </div>
 
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="phone">Nomor Telepon</Label>
-                          {editingUser ? (
-                            <Input
-                              id="phone"
-                              value={userForm.phone}
-                              onChange={(e) => setUserForm({...userForm, phone: e.target.value})}
-                            />
-                          ) : (
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Phone className="h-4 w-4 text-muted-foreground" />
-                              <span>{user?.phone}</span>
-                            </div>
-                          )}
+                      <div className="space-y-2">
+                        <Label htmlFor="storeEmail">Email Toko</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="storeEmail"
+                            type="email"
+                            value={storeForm.email}
+                            onChange={(e) => setStoreForm(prev => ({ ...prev, email: e.target.value }))}
+                            className="pl-10"
+                            placeholder="Masukkan email toko"
+                          />
                         </div>
+                      </div>
 
-                        <div>
-                          <Label htmlFor="address">Alamat</Label>
-                          {editingUser ? (
-                            <Input
-                              id="address"
-                              value={userForm.address}
-                              onChange={(e) => setUserForm({...userForm, address: e.target.value})}
-                            />
-                          ) : (
-                            <div className="flex items-center space-x-2 mt-1">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                              <span>{user?.address}</span>
-                            </div>
-                          )}
+                      <div className="space-y-2">
+                        <Label htmlFor="storePhone">Nomor Telepon Toko</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="storePhone"
+                            type="tel"
+                            value={storeForm.phone}
+                            onChange={(e) => setStoreForm(prev => ({ ...prev, phone: e.target.value }))}
+                            className="pl-10"
+                            placeholder="Masukkan nomor telepon toko"
+                          />
                         </div>
                       </div>
                     </div>
 
-                    {editingUser && (
-                      <div className="flex space-x-4">
-                        <Button onClick={handleUserUpdate}>
-                          Simpan Perubahan
-                        </Button>
-                        <Button variant="outline" onClick={() => setEditingUser(false)}>
-                          Batal
-                        </Button>
+                    <div className="space-y-2">
+                      <Label htmlFor="storeAddress">Alamat Toko</Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <textarea
+                          id="storeAddress"
+                          value={storeForm.address}
+                          onChange={(e) => setStoreForm(prev => ({ ...prev, address: e.target.value }))}
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          rows={3}
+                          placeholder="Masukkan alamat toko lengkap"
+                        />
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+                    </div>
+
+                    <Button type="submit" disabled={loading} className="w-full md:w-auto">
+                      <Save className="h-4 w-4 mr-2" />
+                      {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Cashier Management Tab - Only for Owner */}
+            {user?.role === 'pemilik' && (
+              <TabsContent value="cashiers">
+                <CashierManagement />
               </TabsContent>
-
-              {/* Store Profile Tab */}
-              <TabsContent value="store">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Profil Toko</CardTitle>
-                    <CardDescription>
-                      Kelola informasi toko Anda
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Access Control Notice for Store Profile */}
-                    {!isOwner && (
-                      <Card className="border-yellow-200 bg-yellow-50">
-                        <CardContent className="p-4">
-                          <div className="flex items-center space-x-2 text-yellow-800">
-                            <AlertTriangle className="h-4 w-4" />
-                            <p className="text-sm">
-                              <strong>Info:</strong> Hanya pemilik yang dapat mengedit profil toko. Anda hanya dapat melihat informasi toko.
-                            </p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    <div className="flex items-center space-x-4">
-                      <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center">
-                        <span className="text-2xl font-bold text-white">TB</span>
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-semibold">{store.name}</h3>
-                        <p className="text-muted-foreground">Point of Sale System</p>
-                        {isOwner && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleStoreEditClick}
-                            className="mt-2"
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            {editingStore ? 'Batal' : 'Edit Toko'}
-                          </Button>
-                        )}
-                        {!isOwner && (
-                          <div className="mt-2 text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded inline-block">
-                            View Only
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="store-name">Nama Toko</Label>
-                          {editingStore && isOwner ? (
-                            <Input
-                              id="store-name"
-                              value={storeForm.name}
-                              onChange={(e) => setStoreForm({...storeForm, name: e.target.value})}
-                            />
-                          ) : (
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Store className="h-4 w-4 text-muted-foreground" />
-                              <span>{store.name}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div>
-                          <Label htmlFor="store-email">Email Toko</Label>
-                          {editingStore && isOwner ? (
-                            <Input
-                              id="store-email"
-                              type="email"
-                              value={storeForm.email}
-                              onChange={(e) => setStoreForm({...storeForm, email: e.target.value})}
-                            />
-                          ) : (
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Mail className="h-4 w-4 text-muted-foreground" />
-                              <span>{store.email}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="store-phone">Telepon Toko</Label>
-                          {editingStore && isOwner ? (
-                            <Input
-                              id="store-phone"
-                              value={storeForm.phone}
-                              onChange={(e) => setStoreForm({...storeForm, phone: e.target.value})}
-                            />
-                          ) : (
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Phone className="h-4 w-4 text-muted-foreground" />
-                              <span>{store.phone}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div>
-                          <Label htmlFor="store-address">Alamat Toko</Label>
-                          {editingStore && isOwner ? (
-                            <Input
-                              id="store-address"
-                              value={storeForm.address}
-                              onChange={(e) => setStoreForm({...storeForm, address: e.target.value})}
-                            />
-                          ) : (
-                            <div className="flex items-center space-x-2 mt-1">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                              <span>{store.address}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {editingStore && isOwner && (
-                      <div className="flex space-x-4">
-                        <Button onClick={handleStoreUpdate}>
-                          Simpan Perubahan
-                        </Button>
-                        <Button variant="outline" onClick={() => setEditingStore(false)}>
-                          Batal
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Security Tab */}
-              <TabsContent value="security">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Keamanan Akun</CardTitle>
-                    <CardDescription>
-                      Kelola password dan pengaturan keamanan
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="space-y-4">
-                      <Dialog open={showChangePassword} onOpenChange={setShowChangePassword}>
-                        <DialogTrigger asChild>
-                          <Button variant="outline">
-                            <Lock className="mr-2 h-4 w-4" />
-                            Ubah Password
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Ubah Password</DialogTitle>
-                            <DialogDescription>
-                              Masukkan password lama dan password baru
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label htmlFor="current-password">Password Saat Ini</Label>
-                              <Input
-                                id="current-password"
-                                type="password"
-                                value={passwordForm.currentPassword}
-                                onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="new-password">Password Baru</Label>
-                              <Input
-                                id="new-password"
-                                type="password"
-                                value={passwordForm.newPassword}
-                                onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="confirm-password">Konfirmasi Password Baru</Label>
-                              <Input
-                                id="confirm-password"
-                                type="password"
-                                value={passwordForm.confirmPassword}
-                                onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                              />
-                            </div>
-                            <Button onClick={handlePasswordChange} className="w-full">
-                              Ubah Password
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-
-                      <Separator />
-
-                      <Button variant="destructive" onClick={handleLogout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Keluar dari Akun
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Help Tab */}
-              <TabsContent value="help">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Bantuan & Dukungan</CardTitle>
-                    <CardDescription>
-                      Temukan bantuan dan tutorial penggunaan sistem
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {helpTopics.map((topic, index) => (
-                        <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow">
-                          <CardContent className="p-4">
-                            <h4 className="font-medium mb-2">{topic.title}</h4>
-                            <p className="text-sm text-muted-foreground">{topic.description}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-
-                    <Separator className="my-6" />
-
-                    <div className="text-center space-y-2">
-                      <p className="text-sm text-muted-foreground">
-                        Butuh bantuan lebih lanjut?
-                      </p>
-                      <Button variant="outline">
-                        Hubungi Support
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
+            )}
+          </Tabs>
         </main>
       </div>
     </>
