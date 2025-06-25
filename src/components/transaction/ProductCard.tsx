@@ -13,8 +13,6 @@ interface Product {
   stock: number;
   barcode: string;
   image?: string;
-  isBundle?: boolean;
-  bundleProducts?: { productName: string; quantity: number }[];
 }
 
 interface ProductCardProps {
@@ -29,8 +27,6 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
     if (stock <= 50) return <Badge variant="secondary" className="stock-normal text-xs">Normal</Badge>;
     return <Badge variant="secondary" className="stock-abundant text-xs">Banyak</Badge>;
   };
-
-  const isOutOfStock = product.isBundle ? product.stock === 0 : product.stock === 0;
 
   return (
     <Card className="cursor-pointer hover:shadow-lg transition-shadow">
@@ -47,52 +43,23 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           )}
         </div>
         
-        <div className="flex items-center gap-2 mb-2">
-          <h3 className="font-medium mb-1 line-clamp-2 text-sm md:text-base flex-1">{product.name}</h3>
-          {product.isBundle && (
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
-              Bundling
-            </Badge>
-          )}
-        </div>
-        
-        {!product.isBundle && (
-          <p className="text-xs md:text-sm text-muted-foreground mb-2">{product.category}</p>
-        )}
-        
-        {product.isBundle && product.bundleProducts && (
-          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-            {product.bundleProducts.map(item => `${item.productName} (${item.quantity}x)`).join(', ')}
-          </p>
-        )}
-        
+        <h3 className="font-medium mb-1 line-clamp-2 text-sm md:text-base">{product.name}</h3>
+        <p className="text-xs md:text-sm text-muted-foreground mb-2">{product.category}</p>
         <div className="flex items-center justify-between mb-2">
           <span className="font-bold text-sm md:text-lg">
             Rp {product.price.toLocaleString('id-ID')}
           </span>
-          {!product.isBundle ? (
-            getStockBadge(product.stock)
-          ) : (
-            <Badge variant={product.stock > 0 ? "secondary" : "destructive"} className="text-xs">
-              {product.stock > 0 ? "Tersedia" : "Tidak Tersedia"}
-            </Badge>
-          )}
+          {getStockBadge(product.stock)}
         </div>
-        
-        {!product.isBundle && (
-          <>
-            <p className="text-xs text-muted-foreground mb-2 md:mb-3 hidden sm:block">
-              Stok: {product.stock} | Barcode: {product.barcode}
-            </p>
-            <p className="text-xs text-muted-foreground mb-2 md:mb-3 sm:hidden">
-              Stok: {product.stock}
-            </p>
-          </>
-        )}
-        
+        <p className="text-xs text-muted-foreground mb-2 md:mb-3 hidden sm:block">
+          Stok: {product.stock} | Barcode: {product.barcode}
+        </p>
+        <p className="text-xs text-muted-foreground mb-2 md:mb-3 sm:hidden">
+          Stok: {product.stock}
+        </p>
         <Button 
           onClick={() => onAddToCart(product)}
-          disabled={isOutOfStock}
+          disabled={product.stock === 0}
           className="w-full"
           size="sm"
         >
