@@ -23,7 +23,6 @@ const Analytics = () => {
   const getSalesData = (range: string) => {
     switch (range) {
       case 'today':
-        // Per jam untuk hari ini
         return Array.from({length: 24}, (_, i) => ({
           name: `${i.toString().padStart(2, '0')}:00`,
           sales: Math.random() * 500000 + 100000,
@@ -31,7 +30,6 @@ const Analytics = () => {
         }));
       
       case 'yesterday':
-        // Per jam untuk kemarin
         return Array.from({length: 24}, (_, i) => ({
           name: `${i.toString().padStart(2, '0')}:00`,
           sales: Math.random() * 450000 + 80000,
@@ -39,7 +37,6 @@ const Analytics = () => {
         }));
       
       case 'week':
-        // Per hari untuk 7 hari terakhir
         const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
         return days.map(day => ({
           name: day,
@@ -48,7 +45,6 @@ const Analytics = () => {
         }));
       
       case 'month':
-        // Per tanggal untuk 30 hari terakhir
         return Array.from({length: 30}, (_, i) => ({
           name: `${i + 1}`,
           sales: Math.random() * 2500000 + 800000,
@@ -56,7 +52,6 @@ const Analytics = () => {
         }));
       
       case 'quarter':
-        // Per bulan untuk 3 bulan terakhir
         const months3 = ['Bulan 1', 'Bulan 2', 'Bulan 3'];
         return months3.map(month => ({
           name: month,
@@ -65,7 +60,6 @@ const Analytics = () => {
         }));
       
       case 'year':
-        // Per bulan untuk tahun ini
         const monthsYear = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         return monthsYear.map(month => ({
           name: month,
@@ -74,7 +68,6 @@ const Analytics = () => {
         }));
       
       case 'custom':
-        // Data berdasarkan custom range (contoh per hari)
         const customDays = Math.abs(
           Math.floor((customDateRange.endDate?.getTime() || Date.now()) - 
                     (customDateRange.startDate?.getTime() || Date.now())) / (1000 * 60 * 60 * 24)
@@ -129,26 +122,37 @@ const Analytics = () => {
     }
   };
 
+  // Get category data based on date range
+  const getCategoryData = (range: string) => {
+    const multiplier = range === 'today' ? 0.1 : range === 'week' ? 0.5 : range === 'month' ? 2 : 1;
+    
+    return [
+      { name: 'Sembako', value: 30, sales: Math.floor(13500000 * multiplier) },
+      { name: 'Minuman', value: 20, sales: Math.floor(9000000 * multiplier) },
+      { name: 'Makanan Instan', value: 18, sales: Math.floor(8100000 * multiplier) },
+      { name: 'Kebersihan', value: 15, sales: Math.floor(6750000 * multiplier) },
+      { name: 'Bundling', value: 12, sales: Math.floor(5400000 * multiplier) },
+      { name: 'Lainnya', value: 5, sales: Math.floor(2250000 * multiplier) },
+    ];
+  };
+
+  // Get top products based on date range
+  const getTopProducts = (range: string) => {
+    const multiplier = range === 'today' ? 0.1 : range === 'week' ? 0.5 : range === 'month' ? 2 : 1;
+    
+    return [
+      { name: 'Beras Premium 5kg', sold: Math.floor(125 * multiplier), revenue: Math.floor(9375000 * multiplier) },
+      { name: 'Minyak Goreng 1L', sold: Math.floor(89 * multiplier), revenue: Math.floor(1602000 * multiplier) },
+      { name: 'Paket Hemat Sembako (Bundling)', sold: Math.floor(45 * multiplier), revenue: Math.floor(4455000 * multiplier) },
+      { name: 'Indomie Goreng', sold: Math.floor(234 * multiplier), revenue: Math.floor(819000 * multiplier) },
+      { name: 'Teh Botol Sosro', sold: Math.floor(156 * multiplier), revenue: Math.floor(624000 * multiplier) },
+    ];
+  };
+
   const salesData = getSalesData(dateRange);
-  const stockMovement = getStockMovementData(stockPeriod);
-
-  // Enhanced category data including bundling
-  const categoryData = [
-    { name: 'Sembako', value: 30, sales: 13500000 },
-    { name: 'Minuman', value: 20, sales: 9000000 },
-    { name: 'Makanan Instan', value: 18, sales: 8100000 },
-    { name: 'Kebersihan', value: 15, sales: 6750000 },
-    { name: 'Bundling', value: 12, sales: 5400000 },
-    { name: 'Lainnya', value: 5, sales: 2250000 },
-  ];
-
-  const topProducts = [
-    { name: 'Beras Premium 5kg', sold: 125, revenue: 9375000 },
-    { name: 'Minyak Goreng 1L', sold: 89, revenue: 1602000 },
-    { name: 'Paket Hemat Sembako (Bundling)', sold: 45, revenue: 4455000 },
-    { name: 'Indomie Goreng', sold: 234, revenue: 819000 },
-    { name: 'Teh Botol Sosro', sold: 156, revenue: 624000 },
-  ];
+  const stockMovement = getStockMovementData(dateRange); // Use same period as sales
+  const categoryData = getCategoryData(dateRange);
+  const topProductsData = getTopProducts(dateRange);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -285,7 +289,6 @@ const Analytics = () => {
         </header>
 
         <main className="flex-1 p-3 md:p-6 bg-gray-50 space-y-3 md:space-y-6 min-w-0 overflow-x-hidden">
-          {/* Enhanced Date Range Filter */}
           <DateRangeFilter
             dateRange={dateRange}
             selectedDate={selectedDate}
@@ -341,7 +344,7 @@ const Analytics = () => {
 
           {/* Enhanced Charts Section */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 md:gap-6">
-            {/* Sales Chart with Period-Specific Labels */}
+            {/* Sales Chart */}
             <Card className="xl:col-span-2 min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-base md:text-xl">
@@ -383,11 +386,13 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Enhanced Category Distribution with Bundling */}
+            {/* Category Distribution */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-base md:text-xl">Distribusi Kategori</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Penjualan berdasarkan kategori produk termasuk bundling</CardDescription>
+                <CardDescription className="text-xs md:text-sm">
+                  Penjualan berdasarkan kategori produk - {getPeriodTitle(dateRange)}
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-3 md:p-6 pt-0">
                 <div className="h-48 md:h-80 min-w-0">
@@ -414,25 +419,14 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Enhanced Stock Movement */}
+            {/* Stock Movement */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <div className="flex flex-col space-y-2">
                   <CardTitle className="text-base md:text-xl">Pergerakan Stok</CardTitle>
                   <CardDescription className="text-xs md:text-sm">
-                    {getPeriodTitle(stockPeriod)} ({getChartTimeUnit(stockPeriod)})
+                    {getPeriodTitle(dateRange)} ({getChartTimeUnit(dateRange)})
                   </CardDescription>
-                  <select 
-                    value={stockPeriod}
-                    onChange={(e) => setStockPeriod(e.target.value)}
-                    className="text-xs border rounded px-2 py-1 w-full max-w-xs"
-                  >
-                    <option value="today">Hari Ini (Per Jam)</option>
-                    <option value="yesterday">Kemarin (Per Jam)</option>
-                    <option value="week">7 Hari Terakhir (Per Hari)</option>
-                    <option value="month">30 Hari Terakhir (Per Tanggal)</option>
-                    <option value="year">Tahun Ini (Per Bulan)</option>
-                  </select>
                 </div>
               </CardHeader>
               <CardContent className="p-3 md:p-6 pt-0">
@@ -444,8 +438,8 @@ const Analytics = () => {
                         dataKey="name" 
                         fontSize={10}
                         tick={{ fontSize: 8 }}
-                        angle={stockPeriod === 'month' ? -45 : 0}
-                        textAnchor={stockPeriod === 'month' ? 'end' : 'middle'}
+                        angle={dateRange === 'month' ? -45 : 0}
+                        textAnchor={dateRange === 'month' ? 'end' : 'middle'}
                         height={60}
                       />
                       <YAxis 
@@ -465,13 +459,12 @@ const Analytics = () => {
             </Card>
           </div>
 
-          {/* Riwayat Transaksi */}
           <AnalyticsTransactionHistory
             dateRange={dateRange}
             selectedDate={selectedDate}
           />
 
-          {/* Lower Section with Enhanced Top Products including Bundling */}
+          {/* Lower Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
@@ -480,7 +473,7 @@ const Analytics = () => {
               </CardHeader>
               <CardContent className="p-3 md:p-6 pt-0">
                 <div className="space-y-2 md:space-y-4">
-                  {topProducts.map((product, index) => (
+                  {topProductsData.map((product, index) => (
                     <div key={index} className="flex items-center justify-between p-2 md:p-4 bg-gray-50 rounded-lg min-w-0">
                       <div className="flex items-center space-x-2 md:space-x-4 min-w-0 flex-1">
                         <div className="w-5 h-5 md:w-8 md:h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
@@ -501,11 +494,12 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Enhanced Category Performance with Bundling */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-base md:text-xl">Performa Kategori</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Detail penjualan per kategori termasuk bundling</CardDescription>
+                <CardDescription className="text-xs md:text-sm">
+                  Detail penjualan per kategori - {getPeriodTitle(dateRange)}
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-3 md:p-6 pt-0">
                 <div className="space-y-2 md:space-y-4">
@@ -539,7 +533,6 @@ const Analytics = () => {
         </main>
       </div>
 
-      {/* Stats Detail Dialog */}
       <StatsDetailDialog
         isOpen={!!selectedStat}
         onClose={() => setSelectedStat(null)}

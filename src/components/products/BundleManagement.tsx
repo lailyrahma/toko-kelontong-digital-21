@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -35,9 +35,10 @@ interface Bundle {
 
 interface BundleManagementProps {
   products: Product[];
+  onBundleChange?: (bundles: Bundle[]) => void;
 }
 
-const BundleManagement = ({ products }: BundleManagementProps) => {
+const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) => {
   const [bundles, setBundles] = useState<Bundle[]>([
     {
       id: 'b1',
@@ -71,6 +72,11 @@ const BundleManagement = ({ products }: BundleManagementProps) => {
   });
 
   const { toast } = useToast();
+
+  const updateBundles = (newBundles: Bundle[]) => {
+    setBundles(newBundles);
+    onBundleChange?.(newBundles);
+  };
 
   const handleCreateBundle = () => {
     setEditingBundle(null);
@@ -144,25 +150,28 @@ const BundleManagement = ({ products }: BundleManagementProps) => {
       isAvailable: true
     };
 
+    let newBundles;
     if (editingBundle) {
-      setBundles(bundles.map(b => b.id === editingBundle.id ? newBundle : b));
+      newBundles = bundles.map(b => b.id === editingBundle.id ? newBundle : b);
       toast({
         title: "Berhasil",
         description: "Bundle berhasil diperbarui",
       });
     } else {
-      setBundles([...bundles, newBundle]);
+      newBundles = [...bundles, newBundle];
       toast({
         title: "Berhasil",
         description: "Bundle berhasil dibuat",
       });
     }
 
+    updateBundles(newBundles);
     setIsDialogOpen(false);
   };
 
   const handleDeleteBundle = (bundleId: string) => {
-    setBundles(bundles.filter(b => b.id !== bundleId));
+    const newBundles = bundles.filter(b => b.id !== bundleId);
+    updateBundles(newBundles);
     toast({
       title: "Berhasil",
       description: "Bundle berhasil dihapus",

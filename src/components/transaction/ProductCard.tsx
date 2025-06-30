@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,12 @@ const ProductCard = ({ product, bundle, onAddToCart }: ProductCardProps) => {
   const isBundle = !!bundle;
   const isAvailable = product ? product.stock > 0 : bundle?.isAvailable || false;
 
+  const handleAddToCart = () => {
+    if (isAvailable && item) {
+      onAddToCart(item);
+    }
+  };
+
   const getStockBadge = () => {
     if (isBundle) {
       return bundle?.isAvailable ? 
@@ -74,7 +81,7 @@ const ProductCard = ({ product, bundle, onAddToCart }: ProductCardProps) => {
         </div>
         
         <div className="flex items-start justify-between mb-1 sm:mb-2 min-h-[2.5rem]">
-          <h3 className="font-medium line-clamp-2 text-xs sm:text-sm flex-1 leading-tight">{item.name}</h3>
+          <h3 className="font-medium line-clamp-2 text-xs sm:text-sm flex-1 leading-tight pr-1">{item.name}</h3>
           {isBundle && (
             <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0 flex-shrink-0">
               Bundle
@@ -112,7 +119,7 @@ const ProductCard = ({ product, bundle, onAddToCart }: ProductCardProps) => {
         )}
         
         <Button 
-          onClick={() => onAddToCart(item)}
+          onClick={handleAddToCart}
           disabled={!isAvailable}
           className="w-full mt-auto h-7 sm:h-8 text-[10px] sm:text-xs"
           size="sm"
