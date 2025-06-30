@@ -264,13 +264,6 @@ const Analytics = () => {
   };
 
   const stats = getStatsForPeriod(dateRange);
-  const topProducts = [
-    { name: 'Beras Premium 5kg', sold: 125, revenue: 9375000 },
-    { name: 'Minyak Goreng 1L', sold: 89, revenue: 1602000 },
-    { name: 'Paket Hemat Sembako (Bundling)', sold: 45, revenue: 4455000 },
-    { name: 'Indomie Goreng', sold: 234, revenue: 819000 },
-    { name: 'Teh Botol Sosro', sold: 156, revenue: 624000 },
-  ];
 
   const handleStatClick = (stat: any) => {
     setSelectedStat({
