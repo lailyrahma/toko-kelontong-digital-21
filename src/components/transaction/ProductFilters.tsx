@@ -4,10 +4,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
 
+interface Category {
+  value: string;
+  label: string;
+}
+
 interface ProductFiltersProps {
   searchTerm: string;
   selectedCategory: string;
-  categories: string[];
+  categories: Category[];
   onSearchChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
 }
@@ -36,8 +41,8 @@ const ProductFilters = ({
         </SelectTrigger>
         <SelectContent>
           {categories.map(category => (
-            <SelectItem key={category} value={category}>
-              {category === 'all' ? 'Semua Kategori' : category}
+            <SelectItem key={category.value} value={category.value}>
+              {category.label}
             </SelectItem>
           ))}
         </SelectContent>
