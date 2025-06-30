@@ -145,9 +145,9 @@ const Analytics = () => {
   const topProducts = [
     { name: 'Beras Premium 5kg', sold: 125, revenue: 9375000 },
     { name: 'Minyak Goreng 1L', sold: 89, revenue: 1602000 },
+    { name: 'Paket Hemat Sembako (Bundling)', sold: 45, revenue: 4455000 },
     { name: 'Indomie Goreng', sold: 234, revenue: 819000 },
     { name: 'Teh Botol Sosro', sold: 156, revenue: 624000 },
-    { name: 'Sabun Mandi Lifebuoy', sold: 67, revenue: 569500 },
   ];
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
