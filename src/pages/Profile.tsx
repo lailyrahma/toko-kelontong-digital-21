@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser } from '@/contexts/UserContext';
 import { useToast } from '@/hooks/use-toast';
-import { User, Store, Phone, Mail, MapPin, Save } from 'lucide-react';
+import { User, Store, Phone, Mail, MapPin, Save, Shield, HelpCircle, Key, FileText, MessageSquare } from 'lucide-react';
 import CashierManagement from '@/components/cashier/CashierManagement';
 
 const Profile = () => {
@@ -27,6 +27,12 @@ const Profile = () => {
     address: store.address,
     phone: store.phone,
     email: store.email
+  });
+
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -75,6 +81,54 @@ const Profile = () => {
     }
   };
 
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        title: "Kesalahan",
+        description: "Password baru dan konfirmasi password tidak cocok",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast({
+        title: "Kesalahan",
+        description: "Password minimal 6 karakter",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      toast({
+        title: "Berhasil",
+        description: "Password berhasil diubah",
+      });
+    } catch (error) {
+      toast({
+        title: "Kesalahan",
+        description: "Gagal mengubah password",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTabsCount = () => {
+    let count = 2; // Profile dan Security selalu ada
+    if (user?.role === 'pemilik') {
+      count += 2; // Store dan Cashiers
+    }
+    return count;
+  };
+
   return (
     <>
       <AppSidebar />
@@ -88,13 +142,14 @@ const Profile = () => {
 
         <main className="flex-1 p-6 bg-gray-50">
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className={`grid w-full ${user?.role === 'pemilik' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <TabsList className={`grid w-full grid-cols-${getTabsCount()}`}>
               <TabsTrigger value="profile">Profil Saya</TabsTrigger>
+              <TabsTrigger value="security">Keamanan</TabsTrigger>
               {user?.role === 'pemilik' && (
-                <TabsTrigger value="store">Informasi Toko</TabsTrigger>
-              )}
-              {user?.role === 'pemilik' && (
-                <TabsTrigger value="cashiers">Manajemen Kasir</TabsTrigger>
+                <>
+                  <TabsTrigger value="store">Informasi Toko</TabsTrigger>
+                  <TabsTrigger value="cashiers">Manajemen Kasir</TabsTrigger>
+                </>
               )}
             </TabsList>
 
@@ -192,6 +247,102 @@ const Profile = () => {
                   </form>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Security Tab */}
+            <TabsContent value="security">
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Shield className="h-5 w-5" />
+                      <span>Keamanan Akun</span>
+                    </CardTitle>
+                    <CardDescription>
+                      Kelola pengaturan keamanan akun Anda
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handlePasswordChange} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="currentPassword">Password Saat Ini</Label>
+                        <div className="relative">
+                          <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="currentPassword"
+                            type="password"
+                            value={passwordForm.currentPassword}
+                            onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                            className="pl-10"
+                            placeholder="Masukkan password saat ini"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword">Password Baru</Label>
+                        <div className="relative">
+                          <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="newPassword"
+                            type="password"
+                            value={passwordForm.newPassword}
+                            onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                            className="pl-10"
+                            placeholder="Masukkan password baru"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Konfirmasi Password Baru</Label>
+                        <div className="relative">
+                          <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="confirmPassword"
+                            type="password"
+                            value={passwordForm.confirmPassword}
+                            onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                            className="pl-10"
+                            placeholder="Konfirmasi password baru"
+                          />
+                        </div>
+                      </div>
+
+                      <Button type="submit" disabled={loading}>
+                        <Shield className="h-4 w-4 mr-2" />
+                        {loading ? 'Mengubah...' : 'Ubah Password'}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <HelpCircle className="h-5 w-5" />
+                      <span>Bantuan & Dukungan</span>
+                    </CardTitle>
+                    <CardDescription>
+                      Akses bantuan dan dukungan teknis
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Button variant="outline" className="w-full justify-start">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Panduan Pengguna
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Hubungi Dukungan
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start">
+                      <HelpCircle className="h-4 w-4 mr-2" />
+                      FAQ (Pertanyaan Umum)
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             {/* Store Information Tab - Only for Owner */}

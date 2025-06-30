@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -113,7 +112,7 @@ const Transaction = () => {
 
   const { toast } = useToast();
 
-  const categories = ['Sembako', 'Makanan Instan', 'Minuman', 'Kebersihan', 'Snack', 'Frozen Food'];
+  const categories = ['Sembako', 'Makanan Instan', 'Minuman', 'Kebersihan', 'Snack', 'Frozen Food', 'Bundling'];
 
   // Combine products and bundles for display
   const allItems = [
@@ -269,29 +268,29 @@ const Transaction = () => {
   return (
     <>
       <AppSidebar />
-      <div className="flex-1 flex flex-col">
-        <header className="flex items-center space-x-4 p-6 border-b bg-white">
+      <div className="flex-1 flex flex-col h-screen">
+        <header className="flex items-center space-x-4 p-4 lg:p-6 border-b bg-white flex-shrink-0">
           <SidebarTrigger />
-          <h1 className="text-2xl font-bold">Transaksi Penjualan</h1>
+          <h1 className="text-xl lg:text-2xl font-bold">Transaksi Penjualan</h1>
         </header>
 
-        <div className="flex-1 flex">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* Products Section */}
-          <div className="flex-1 p-6 bg-gray-50">
+          <div className="flex-1 p-4 lg:p-6 bg-gray-50 overflow-y-auto">
             {/* Search and Filters */}
-            <div className="mb-6 space-y-4">
+            <div className="mb-4 lg:mb-6 space-y-3 lg:space-y-4">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Cari produk atau bundling..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 h-10 lg:h-12"
                 />
               </div>
               
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
+                <SelectTrigger className="h-10 lg:h-12">
                   <SelectValue placeholder="Pilih kategori" />
                 </SelectTrigger>
                 <SelectContent>
@@ -306,7 +305,7 @@ const Transaction = () => {
             </div>
 
             {/* Products Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
               {filteredItems.map(({ type, item }) => (
                 <ProductCard
                   key={item.id}
@@ -325,58 +324,60 @@ const Transaction = () => {
             )}
           </div>
 
-          {/* Cart Section */}
-          <div className="w-96 border-l bg-white flex flex-col">
-            <div className="p-4 border-b">
-              <div className="flex items-center space-x-2 mb-4">
-                <ShoppingCart className="h-5 w-5" />
-                <h2 className="text-lg font-semibold">Keranjang</h2>
-                <Badge variant="secondary">{cart.length}</Badge>
+          {/* Cart Section - Fixed height with better layout */}
+          <div className="w-full lg:w-96 border-t lg:border-t-0 lg:border-l bg-white flex flex-col max-h-[50vh] lg:max-h-none">
+            <div className="p-3 lg:p-4 border-b flex-shrink-0">
+              <div className="flex items-center space-x-2 mb-3 lg:mb-4">
+                <ShoppingCart className="h-4 w-4 lg:h-5 lg:w-5" />
+                <h2 className="text-base lg:text-lg font-semibold">Keranjang</h2>
+                <Badge variant="secondary" className="text-xs">{cart.length}</Badge>
               </div>
               
               {/* Customer Info */}
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4 text-muted-foreground" />
+                  <User className="h-3 w-3 lg:h-4 lg:w-4 text-muted-foreground flex-shrink-0" />
                   <Input
                     placeholder="Nama pelanggan (opsional)"
                     value={customer.name}
                     onChange={(e) => setCustomer({...customer, name: e.target.value})}
-                    className="text-sm"
+                    className="text-xs lg:text-sm h-8 lg:h-10"
                   />
                 </div>
                 <Input
                   placeholder="No. telepon (opsional)"
                   value={customer.phone}
                   onChange={(e) => setCustomer({...customer, phone: e.target.value})}
-                  className="text-sm"
+                  className="text-xs lg:text-sm h-8 lg:h-10"
                 />
               </div>
             </div>
 
-            {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {/* Cart Items - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-3 lg:p-4 min-h-0">
               {cart.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <ShoppingCart className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>Keranjang kosong</p>
+                <div className="text-center py-6 lg:py-8 text-muted-foreground">
+                  <ShoppingCart className="h-8 w-8 lg:h-12 lg:w-12 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm lg:text-base">Keranjang kosong</p>
                 </div>
               ) : (
-                cart.map((item) => (
-                  <CartItem
-                    key={item.id}
-                    item={item}
-                    onUpdateQuantity={handleUpdateQuantity}
-                    onRemove={handleRemoveFromCart}
-                  />
-                ))
+                <div className="space-y-2">
+                  {cart.map((item) => (
+                    <CartItem
+                      key={item.id}
+                      item={item}
+                      onUpdateQuantity={handleUpdateQuantity}
+                      onRemove={handleRemoveFromCart}
+                    />
+                  ))}
+                </div>
               )}
             </div>
 
-            {/* Cart Summary */}
+            {/* Cart Summary - Fixed at bottom */}
             {cart.length > 0 && (
-              <div className="border-t p-4 space-y-4">
-                <div className="space-y-2 text-sm">
+              <div className="border-t p-3 lg:p-4 space-y-3 lg:space-y-4 flex-shrink-0 bg-white">
+                <div className="space-y-1 lg:space-y-2 text-xs lg:text-sm">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
                     <span>Rp {subtotal.toLocaleString('id-ID')}</span>
@@ -386,26 +387,27 @@ const Transaction = () => {
                     <span>Rp {tax.toLocaleString('id-ID')}</span>
                   </div>
                   <Separator />
-                  <div className="flex justify-between font-semibold">
+                  <div className="flex justify-between font-semibold text-sm lg:text-base">
                     <span>Total:</span>
                     <span>Rp {total.toLocaleString('id-ID')}</span>
                   </div>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
                   <Button
                     onClick={handleClearCart}
                     variant="outline"
-                    className="w-full"
                     size="sm"
+                    className="h-8 lg:h-10 text-xs lg:text-sm"
                   >
-                    Kosongkan Keranjang
+                    Kosongkan
                   </Button>
                   <Button
                     onClick={handleCheckout}
-                    className="w-full"
+                    size="sm"
+                    className="h-8 lg:h-10 text-xs lg:text-sm"
                   >
-                    <CreditCard className="mr-2 h-4 w-4" />
+                    <CreditCard className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4" />
                     Bayar
                   </Button>
                 </div>

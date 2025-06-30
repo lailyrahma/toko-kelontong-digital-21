@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,25 +43,25 @@ const ProductCard = ({ product, bundle, onAddToCart }: ProductCardProps) => {
   const getStockBadge = () => {
     if (isBundle) {
       return bundle?.isAvailable ? 
-        <Badge variant="secondary" className="text-xs">Tersedia</Badge> : 
-        <Badge variant="destructive" className="text-xs">Tidak Tersedia</Badge>;
+        <Badge variant="secondary" className="text-[10px] px-1 py-0">Tersedia</Badge> : 
+        <Badge variant="destructive" className="text-[10px] px-1 py-0">Tidak Tersedia</Badge>;
     }
     
     if (product) {
       const stock = product.stock;
-      if (stock === 0) return <Badge variant="destructive" className="stock-empty text-xs">Habis</Badge>;
-      if (stock < 10) return <Badge variant="secondary" className="stock-low text-xs">Sedikit</Badge>;
-      if (stock <= 50) return <Badge variant="secondary" className="stock-normal text-xs">Normal</Badge>;
-      return <Badge variant="secondary" className="stock-abundant text-xs">Banyak</Badge>;
+      if (stock === 0) return <Badge variant="destructive" className="stock-empty text-[10px] px-1 py-0">Habis</Badge>;
+      if (stock < 10) return <Badge variant="secondary" className="stock-low text-[10px] px-1 py-0">Sedikit</Badge>;
+      if (stock <= 50) return <Badge variant="secondary" className="stock-normal text-[10px] px-1 py-0">Normal</Badge>;
+      return <Badge variant="secondary" className="stock-abundant text-[10px] px-1 py-0">Banyak</Badge>;
     }
     
     return null;
   };
 
   return (
-    <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-      <CardContent className="p-3 md:p-4">
-        <div className="aspect-square bg-gray-100 rounded-lg mb-2 md:mb-3 flex items-center justify-center overflow-hidden">
+    <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full">
+      <CardContent className="p-2 sm:p-3 h-full flex flex-col">
+        <div className="aspect-square bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
           {item.image ? (
             <img 
               src={item.image} 
@@ -70,62 +69,57 @@ const ProductCard = ({ product, bundle, onAddToCart }: ProductCardProps) => {
               className="w-full h-full object-cover"
             />
           ) : (
-            <Package className="h-8 w-8 md:h-12 md:w-12 text-muted-foreground" />
+            <Package className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
           )}
         </div>
         
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="font-medium line-clamp-2 text-sm md:text-base flex-1">{item.name}</h3>
+        <div className="flex items-start justify-between mb-1 sm:mb-2 min-h-[2.5rem]">
+          <h3 className="font-medium line-clamp-2 text-xs sm:text-sm flex-1 leading-tight">{item.name}</h3>
           {isBundle && (
-            <Badge variant="outline" className="ml-2 text-xs">
-              Bundling
+            <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0 flex-shrink-0">
+              Bundle
             </Badge>
           )}
         </div>
         
         {!isBundle && product && (
-          <p className="text-xs md:text-sm text-muted-foreground mb-2">{product.category}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 truncate">{product.category}</p>
         )}
         
         {isBundle && bundle && (
-          <p className="text-xs text-muted-foreground mb-2">
-            {bundle.products.length} produk dalam paket
+          <p className="text-[10px] text-muted-foreground mb-1">
+            {bundle.products.length} produk
           </p>
         )}
         
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-bold text-sm md:text-lg">
+        <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
+          <span className="font-bold text-xs sm:text-sm">
             Rp {item.price.toLocaleString('id-ID')}
           </span>
           {getStockBadge()}
         </div>
         
         {!isBundle && product && (
-          <>
-            <p className="text-xs text-muted-foreground mb-2 md:mb-3 hidden sm:block">
-              Stok: {product.stock} | Barcode: {product.barcode}
-            </p>
-            <p className="text-xs text-muted-foreground mb-2 md:mb-3 sm:hidden">
-              Stok: {product.stock}
-            </p>
-          </>
+          <p className="text-[10px] text-muted-foreground mb-2 hidden sm:block">
+            Stok: {product.stock}
+          </p>
         )}
         
         {isBundle && bundle && (
-          <p className="text-xs text-muted-foreground mb-2 md:mb-3">
-            {bundle.products.map(p => `${p.productName} (${p.quantity}x)`).join(', ')}
+          <p className="text-[10px] text-muted-foreground mb-2 line-clamp-2">
+            {bundle.products.map(p => `${p.productName} (${p.quantity})`).join(', ')}
           </p>
         )}
         
         <Button 
           onClick={() => onAddToCart(item)}
           disabled={!isAvailable}
-          className="w-full"
+          className="w-full mt-auto h-7 sm:h-8 text-[10px] sm:text-xs"
           size="sm"
         >
-          <Plus className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
-          <span className="hidden sm:inline">Tambah</span>
-          <span className="sm:hidden">+</span>
+          <Plus className="mr-1 h-3 w-3" />
+          <span className="hidden xs:inline">Tambah</span>
+          <span className="xs:hidden">+</span>
         </Button>
       </CardContent>
     </Card>
