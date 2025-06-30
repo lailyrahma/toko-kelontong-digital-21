@@ -213,10 +213,16 @@ const Transaction = () => {
   const handlePaymentSuccess = (paymentData: any) => {
     const transaction = {
       id: `TXN-${Date.now()}`,
-      date: new Date(),
+      date: new Date().toLocaleDateString('id-ID'),
+      time: new Date().toLocaleTimeString('id-ID'),
       items: [...cart],
-      total: getTotalPrice(),
-      payment: paymentData
+      subtotal: getTotalPrice(),
+      tax: Math.round(getTotalPrice() * 0.1),
+      total: getTotalPrice() + Math.round(getTotalPrice() * 0.1),
+      paymentMethod: paymentData.method || 'cash',
+      amountPaid: paymentData.amountPaid || getTotalPrice(),
+      change: Math.max(0, (paymentData.amountPaid || getTotalPrice()) - getTotalPrice()),
+      cashierName: 'Kasir'
     };
 
     setLastTransaction(transaction);
@@ -287,9 +293,9 @@ const Transaction = () => {
             </div>
           </div>
 
-          {/* Cart Section */}
-          <div className="w-full lg:w-80 xl:w-96 border-l bg-white flex flex-col order-1 lg:order-2">
-            <div className="p-3 md:p-4 border-b">
+          {/* Cart Section - Fixed Height and Responsive */}
+          <div className="w-full lg:w-80 xl:w-96 border-l bg-white flex flex-col order-1 lg:order-2 max-h-[50vh] lg:max-h-full">
+            <div className="p-3 md:p-4 border-b flex-shrink-0">
               <div className="flex items-center justify-between">
                 <h2 className="text-base md:text-lg font-semibold flex items-center">
                   <ShoppingCart className="mr-2 h-4 w-4 md:h-5 md:w-5" />
@@ -301,7 +307,8 @@ const Transaction = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto">
+            {/* Scrollable Cart Items */}
+            <div className="flex-1 overflow-auto min-h-0">
               {cart.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
                   <ShoppingCart className="mx-auto h-12 w-12 mb-4 opacity-50" />
@@ -353,9 +360,9 @@ const Transaction = () => {
               )}
             </div>
 
-            {/* Cart Summary */}
+            {/* Fixed Cart Summary - Always Visible */}
             {cart.length > 0 && (
-              <div className="border-t p-3 md:p-4 space-y-3 bg-white">
+              <div className="border-t p-3 md:p-4 space-y-3 bg-white flex-shrink-0">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal ({getTotalItems()} item)</span>
@@ -395,15 +402,14 @@ const Transaction = () => {
       <PaymentDialog
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}
-        cartItems={cart}
-        totalAmount={getTotalPrice()}
-        onPaymentSuccess={handlePaymentSuccess}
+        total={getTotalPrice()}
+        onPaymentComplete={handlePaymentSuccess}
       />
 
       <ReceiptDialog
         isOpen={isReceiptOpen}
         onClose={() => setIsReceiptOpen(false)}
-        transaction={lastTransaction}
+        receipt={lastTransaction}
       />
     </div>
   );
