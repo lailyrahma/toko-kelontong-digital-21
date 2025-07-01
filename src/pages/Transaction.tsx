@@ -246,9 +246,20 @@ const Transaction = () => {
             <SidebarTrigger />
             <h1 className="text-lg md:text-2xl font-bold">Transaksi Penjualan</h1>
           </div>
-          <Badge variant="secondary" className="hidden md:flex">
-            {getTotalItems()} item di keranjang
-          </Badge>
+          {/* Enhanced Cart Icon with Badge - Mobile */}
+          <div className="lg:hidden relative">
+            <Button variant="outline" size="sm" className="relative">
+              <ShoppingCart className="h-5 w-5" />
+              {getTotalItems() > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full"
+                >
+                  {getTotalItems()}
+                </Badge>
+              )}
+            </Button>
+          </div>
         </header>
 
         <div className="flex-1 flex flex-col lg:flex-row min-h-0 relative">
@@ -293,77 +304,117 @@ const Transaction = () => {
             </div>
           </div>
 
-          {/* Fixed Cart Section - Shopee Style */}
-          <div className="fixed bottom-0 left-0 right-0 lg:absolute lg:right-0 lg:top-0 lg:bottom-auto w-full lg:w-80 xl:w-96 bg-white border-t lg:border-l lg:border-t-0 flex flex-col z-10">
-            {/* Mobile Cart Header - Only show on mobile */}
-            <div className="lg:hidden p-3 border-b flex items-center justify-between bg-white">
-              <h2 className="text-base font-semibold flex items-center">
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Keranjang ({getTotalItems()})
-              </h2>
+          {/* Enhanced Fixed Cart Section */}
+          <div className="fixed bottom-0 left-0 right-0 lg:absolute lg:right-0 lg:top-0 lg:bottom-auto w-full lg:w-80 xl:w-96 bg-white border-t lg:border-l lg:border-t-0 flex flex-col z-10 shadow-lg lg:shadow-none">
+            {/* Enhanced Mobile Cart Header */}
+            <div className="lg:hidden p-3 border-b flex items-center justify-between bg-white shadow-sm">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <ShoppingCart className="h-6 w-6 text-blue-600" />
+                  {getTotalItems() > 0 && (
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full animate-pulse"
+                    >
+                      {getTotalItems()}
+                    </Badge>
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold">Keranjang</h2>
+                  <p className="text-xs text-muted-foreground">{getTotalItems()} item</p>
+                </div>
+              </div>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={clearCart}
-                className="text-red-600"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 disabled={cart.length === 0}
               >
-                Kosongkan
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
 
-            {/* Desktop Cart Header */}
-            <div className="hidden lg:block p-4 border-b">
+            {/* Enhanced Desktop Cart Header */}
+            <div className="hidden lg:block p-4 border-b bg-gradient-to-r from-blue-50 to-white">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold flex items-center">
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  Keranjang
-                </h2>
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <ShoppingCart className="h-6 w-6 text-blue-600" />
+                    {getTotalItems() > 0 && (
+                      <Badge 
+                        variant="destructive" 
+                        className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full"
+                      >
+                        {getTotalItems()}
+                      </Badge>
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold">Keranjang</h2>
+                    <p className="text-sm text-muted-foreground">{getTotalItems()} item dipilih</p>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Cart Items - Scrollable */}
             <div className="flex-1 overflow-auto max-h-40 lg:max-h-none">
               {cart.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  <ShoppingCart className="mx-auto h-8 w-8 mb-2 opacity-50" />
-                  <p className="text-sm">Keranjang kosong</p>
+                <div className="p-6 text-center text-muted-foreground">
+                  <div className="relative mx-auto w-16 h-16 mb-4">
+                    <ShoppingCart className="h-16 w-16 text-gray-300" />
+                    <div className="absolute inset-0 border-2 border-dashed border-gray-300 rounded-full"></div>
+                  </div>
+                  <p className="text-sm font-medium">Keranjang Kosong</p>
+                  <p className="text-xs text-muted-foreground mt-1">Tambahkan produk untuk memulai</p>
                 </div>
               ) : (
-                <div className="p-3 space-y-2">
+                <div className="p-3 space-y-3">
                   {cart.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-3 p-2 border rounded-lg bg-gray-50">
+                    <div key={item.id} className="flex items-center space-x-3 p-3 border rounded-lg bg-gradient-to-r from-gray-50 to-white hover:shadow-md transition-shadow">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-sm truncate">{item.name}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          Rp {item.price.toLocaleString('id-ID')}
-                          {item.type === 'bundle' && <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">Bundle</Badge>}
-                        </p>
+                        <div className="flex items-center space-x-2">
+                          <p className="text-xs text-muted-foreground">
+                            Rp {item.price.toLocaleString('id-ID')}
+                          </p>
+                          {item.type === 'bundle' && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0">
+                              Bundle
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="h-7 w-7 p-0 rounded-full"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="h-7 w-7 p-0 rounded-full"
-                          disabled={item.type === 'product' && item.stock !== undefined && item.quantity >= item.stock}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1 bg-white border rounded-full p-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="h-6 w-6 p-0 rounded-full hover:bg-gray-100"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="text-sm font-medium w-8 text-center bg-gray-50 rounded px-2 py-1">
+                            {item.quantity}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="h-6 w-6 p-0 rounded-full hover:bg-gray-100"
+                            disabled={item.type === 'product' && item.stock !== undefined && item.quantity >= item.stock}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => removeFromCart(item.id)}
-                          className="h-7 w-7 p-0 text-red-600 ml-1"
+                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full"
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -376,16 +427,16 @@ const Transaction = () => {
 
             {/* Fixed Cart Summary - Always Visible */}
             {cart.length > 0 && (
-              <div className="border-t p-3 bg-white">
-                <div className="space-y-2 mb-3">
+              <div className="border-t p-4 bg-white shadow-lg lg:shadow-none">
+                <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal ({getTotalItems()} item)</span>
-                    <span>Rp {getTotalPrice().toLocaleString('id-ID')}</span>
+                    <span className="font-medium">Rp {getTotalPrice().toLocaleString('id-ID')}</span>
                   </div>
                   <Separator />
-                  <div className="flex justify-between font-semibold">
+                  <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>Rp {getTotalPrice().toLocaleString('id-ID')}</span>
+                    <span className="text-blue-600">Rp {getTotalPrice().toLocaleString('id-ID')}</span>
                   </div>
                 </div>
 
@@ -393,18 +444,18 @@ const Transaction = () => {
                   <Button
                     variant="outline"
                     onClick={clearCart}
-                    className="flex-1 hidden lg:flex"
+                    className="flex-1 hidden lg:flex hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                     size="sm"
                   >
                     Kosongkan
                   </Button>
                   <Button
                     onClick={() => setIsPaymentOpen(true)}
-                    className="flex-1 lg:flex-1"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 shadow-md"
                     size="sm"
                   >
                     <Receipt className="mr-2 h-4 w-4" />
-                    Bayar
+                    Bayar Sekarang
                   </Button>
                 </div>
               </div>
