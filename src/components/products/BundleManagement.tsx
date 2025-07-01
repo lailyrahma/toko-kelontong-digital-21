@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -73,6 +72,14 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
 
   const { toast } = useToast();
 
+  // Helper function to calculate bundle value
+  const calculateBundleValue = (bundleProducts: BundleProduct[]): number => {
+    return bundleProducts.reduce((total, bundleProduct) => {
+      const product = products.find(p => p.id === bundleProduct.productId);
+      return total + (product ? product.price * bundleProduct.quantity : 0);
+    }, 0);
+  };
+
   const updateBundles = (newBundles: Bundle[]) => {
     setBundles(newBundles);
     onBundleChange?.(newBundles);
@@ -96,6 +103,15 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
       products: [...bundle.products]
     });
     setIsDialogOpen(true);
+  };
+
+  const handleDeleteBundle = (bundleId: string) => {
+    const newBundles = bundles.filter(bundle => bundle.id !== bundleId);
+    updateBundles(newBundles);
+    toast({
+      title: "Berhasil",
+      description: "Bundle berhasil dihapus",
+    });
   };
 
   const handleAddProduct = () => {
