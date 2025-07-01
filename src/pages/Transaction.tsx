@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ShoppingCart, Trash2, Plus, Minus, Receipt } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, Receipt, Clock, Package, Users } from 'lucide-react';
 import ProductCard from '@/components/transaction/ProductCard';
 import ProductFilters from '@/components/transaction/ProductFilters';
 import PaymentDialog from '@/components/transaction/PaymentDialog';
@@ -237,35 +237,40 @@ const Transaction = () => {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-gray-50">
       <AppSidebar />
       
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="flex items-center justify-between p-3 md:p-6 border-b bg-white">
-          <div className="flex items-center space-x-2 md:space-x-4">
+        {/* Header */}
+        <header className="flex items-center justify-between p-4 bg-white border-b shadow-sm">
+          <div className="flex items-center space-x-4">
             <SidebarTrigger />
-            <h1 className="text-lg md:text-2xl font-bold">Transaksi Penjualan</h1>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Kasir</h1>
+              <p className="text-sm text-gray-600">Kelola transaksi penjualan</p>
+            </div>
           </div>
-          {/* Enhanced Cart Icon with Badge - Mobile */}
-          <div className="lg:hidden relative">
-            <Button variant="outline" size="sm" className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              {getTotalItems() > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full"
-                >
-                  {getTotalItems()}
-                </Badge>
-              )}
-            </Button>
+          
+          {/* Order Info - Desktop */}
+          <div className="hidden lg:flex items-center space-x-6">
+            <div className="flex items-center space-x-2 px-4 py-2 bg-blue-50 rounded-lg">
+              <Clock className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium text-blue-900">
+                {new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 px-4 py-2 bg-green-50 rounded-lg">
+              <Users className="h-4 w-4 text-green-600" />
+              <span className="text-sm font-medium text-green-900">Kasir 01</span>
+            </div>
           </div>
         </header>
 
-        <div className="flex-1 flex flex-col lg:flex-row min-h-0 relative">
-          {/* Products Section */}
-          <div className="flex-1 flex flex-col min-w-0 lg:pr-80 xl:pr-96">
-            <div className="p-3 md:p-6 border-b bg-white">
+        <div className="flex-1 flex min-h-0">
+          {/* Left Panel - Products */}
+          <div className="flex-1 flex flex-col min-w-0 lg:pr-96">
+            {/* Product Filters */}
+            <div className="p-4 bg-white border-b">
               <ProductFilters
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
@@ -275,9 +280,26 @@ const Transaction = () => {
               />
             </div>
 
-            <div className="flex-1 p-3 md:p-6 bg-gray-50 overflow-auto pb-32 lg:pb-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4">
-                {/* Regular Products */}
+            {/* Category Tabs */}
+            <div className="p-4 bg-white border-b">
+              <div className="flex space-x-2 overflow-x-auto">
+                {categories.map((category) => (
+                  <Button
+                    key={category.value}
+                    variant={selectedCategory === category.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(category.value)}
+                    className="whitespace-nowrap"
+                  >
+                    {category.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Products Grid */}
+            <div className="flex-1 p-4 overflow-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -286,7 +308,6 @@ const Transaction = () => {
                   />
                 ))}
                 
-                {/* Bundles */}
                 {filteredBundles.map((bundle) => (
                   <ProductCard
                     key={bundle.id}
@@ -297,146 +318,118 @@ const Transaction = () => {
               </div>
 
               {filteredProducts.length === 0 && filteredBundles.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Tidak ada produk yang ditemukan</p>
+                <div className="text-center py-12">
+                  <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">Tidak ada produk ditemukan</p>
+                  <p className="text-gray-400 text-sm">Coba ubah filter atau kata kunci pencarian</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Enhanced Fixed Cart Section */}
-          <div className="fixed bottom-0 left-0 right-0 lg:absolute lg:right-0 lg:top-0 lg:bottom-auto w-full lg:w-80 xl:w-96 bg-white border-t lg:border-l lg:border-t-0 flex flex-col z-10 shadow-lg lg:shadow-none">
-            {/* Enhanced Mobile Cart Header */}
-            <div className="lg:hidden p-3 border-b flex items-center justify-between bg-white shadow-sm">
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <ShoppingCart className="h-6 w-6 text-blue-600" />
-                  {getTotalItems() > 0 && (
-                    <Badge 
-                      variant="destructive" 
-                      className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full animate-pulse"
-                    >
-                      {getTotalItems()}
-                    </Badge>
-                  )}
-                </div>
-                <div>
-                  <h2 className="text-base font-semibold">Keranjang</h2>
-                  <p className="text-xs text-muted-foreground">{getTotalItems()} item</p>
-                </div>
+          {/* Right Panel - Order Summary */}
+          <div className="fixed lg:absolute right-0 top-0 bottom-0 w-full lg:w-96 bg-white border-l shadow-lg z-20 lg:z-0 flex flex-col">
+            {/* Order Header */}
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold text-gray-900">Pesanan Saat Ini</h2>
+                <Badge variant="secondary" className="px-3 py-1">
+                  Order #001
+                </Badge>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={clearCart}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                disabled={cart.length === 0}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Enhanced Desktop Cart Header */}
-            <div className="hidden lg:block p-4 border-b bg-gradient-to-r from-blue-50 to-white">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="relative">
-                    <ShoppingCart className="h-6 w-6 text-blue-600" />
-                    {getTotalItems() > 0 && (
-                      <Badge 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full"
-                      >
-                        {getTotalItems()}
-                      </Badge>
-                    )}
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold">Keranjang</h2>
-                    <p className="text-sm text-muted-foreground">{getTotalItems()} item dipilih</p>
-                  </div>
-                </div>
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <span>{getTotalItems()} item</span>
+                <span>Meja: Kasir</span>
               </div>
             </div>
 
-            {/* Cart Items - Scrollable */}
-            <div className="flex-1 overflow-auto max-h-40 lg:max-h-none">
+            {/* Cart Items */}
+            <div className="flex-1 overflow-auto">
               {cart.length === 0 ? (
-                <div className="p-6 text-center text-muted-foreground">
-                  <div className="relative mx-auto w-16 h-16 mb-4">
-                    <ShoppingCart className="h-16 w-16 text-gray-300" />
-                    <div className="absolute inset-0 border-2 border-dashed border-gray-300 rounded-full"></div>
+                <div className="p-6 text-center">
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <ShoppingCart className="h-10 w-10 text-gray-400" />
                   </div>
-                  <p className="text-sm font-medium">Keranjang Kosong</p>
-                  <p className="text-xs text-muted-foreground mt-1">Tambahkan produk untuk memulai</p>
+                  <p className="text-gray-500 font-medium mb-2">Belum ada pesanan</p>
+                  <p className="text-gray-400 text-sm">Pilih produk untuk memulai</p>
                 </div>
               ) : (
-                <div className="p-3 space-y-3">
+                <div className="p-4 space-y-3">
                   {cart.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-3 p-3 border rounded-lg bg-gradient-to-r from-gray-50 to-white hover:shadow-md transition-shadow">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-sm truncate">{item.name}</h3>
-                        <div className="flex items-center space-x-2">
-                          <p className="text-xs text-muted-foreground">
-                            Rp {item.price.toLocaleString('id-ID')}
-                          </p>
-                          {item.type === 'bundle' && (
-                            <Badge variant="outline" className="text-[10px] px-1 py-0">
-                              Bundle
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="flex items-center space-x-1 bg-white border rounded-full p-1">
+                    <Card key={item.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-gray-900 truncate">{item.name}</h4>
+                            <p className="text-sm text-gray-500">
+                              Rp {item.price.toLocaleString('id-ID')}
+                            </p>
+                            {item.type === 'bundle' && (
+                              <Badge variant="outline" size="sm" className="mt-1">
+                                Bundle
+                              </Badge>
+                            )}
+                          </div>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="h-6 w-6 p-0 rounded-full hover:bg-gray-100"
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1"
                           >
-                            <Minus className="h-3 w-3" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                          <span className="text-sm font-medium w-8 text-center bg-gray-50 rounded px-2 py-1">
-                            {item.quantity}
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center bg-gray-50 rounded-lg">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="px-3 py-1 text-sm font-medium min-w-[2rem] text-center">
+                              {item.quantity}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="h-8 w-8 p-0"
+                              disabled={item.type === 'product' && item.stock !== undefined && item.quantity >= item.stock}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <span className="font-semibold text-gray-900">
+                            Rp {(item.price * item.quantity).toLocaleString('id-ID')}
                           </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="h-6 w-6 p-0 rounded-full hover:bg-gray-100"
-                            disabled={item.type === 'product' && item.stock !== undefined && item.quantity >= item.stock}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFromCart(item.id)}
-                          className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Fixed Cart Summary - Always Visible */}
+            {/* Order Summary */}
             {cart.length > 0 && (
-              <div className="border-t p-4 bg-white shadow-lg lg:shadow-none">
+              <div className="border-t bg-white p-4">
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span>Subtotal ({getTotalItems()} item)</span>
+                    <span className="text-gray-600">Subtotal</span>
                     <span className="font-medium">Rp {getTotalPrice().toLocaleString('id-ID')}</span>
                   </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Pajak (10%)</span>
+                    <span className="font-medium">Rp {Math.round(getTotalPrice() * 0.1).toLocaleString('id-ID')}</span>
+                  </div>
                   <Separator />
-                  <div className="flex justify-between font-bold text-lg">
+                  <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span className="text-blue-600">Rp {getTotalPrice().toLocaleString('id-ID')}</span>
+                    <span className="text-blue-600">Rp {(getTotalPrice() + Math.round(getTotalPrice() * 0.1)).toLocaleString('id-ID')}</span>
                   </div>
                 </div>
 
@@ -444,18 +437,16 @@ const Transaction = () => {
                   <Button
                     variant="outline"
                     onClick={clearCart}
-                    className="flex-1 hidden lg:flex hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                    size="sm"
+                    className="flex-1 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                   >
-                    Kosongkan
+                    Batal
                   </Button>
                   <Button
                     onClick={() => setIsPaymentOpen(true)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 shadow-md"
-                    size="sm"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
                   >
                     <Receipt className="mr-2 h-4 w-4" />
-                    Bayar Sekarang
+                    Bayar
                   </Button>
                 </div>
               </div>
