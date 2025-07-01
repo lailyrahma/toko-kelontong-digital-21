@@ -133,7 +133,7 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
   };
 
   const handleSaveBundle = () => {
-    if (!bundleForm.name.trim() || !bundleForm.price || bundleForm.products.length === 0) {
+    if (!bundleForm.name || !bundleForm.price || bundleForm.products.length === 0) {
       toast({
         title: "Kesalahan",
         description: "Harap lengkapi semua field",
@@ -142,23 +142,12 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
       return;
     }
 
-    // Validate that all products are selected
-    const invalidProducts = bundleForm.products.filter(p => !p.productId);
-    if (invalidProducts.length > 0) {
-      toast({
-        title: "Kesalahan",
-        description: "Harap pilih produk untuk semua item",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const newBundle: Bundle = {
       id: editingBundle ? editingBundle.id : `b${Date.now()}`,
-      name: bundleForm.name.trim(),
+      name: bundleForm.name,
       price: parseInt(bundleForm.price),
-      products: bundleForm.products.filter(p => p.productId), // Only include valid products
-      isAvailable: editingBundle ? editingBundle.isAvailable : true
+      products: bundleForm.products,
+      isAvailable: true
     };
 
     let newBundles;
@@ -178,26 +167,22 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
 
     updateBundles(newBundles);
     setIsDialogOpen(false);
-    // Reset form
-    setBundleForm({
-      name: '',
-      price: '',
-      products: []
-    });
-    setEditingBundle(null);
   };
 
-  const toggleBundleAvailability = (bundleId: string) => {
-    const newBundles = bundles.map(bundle => 
-      bundle.id === bundleId 
-        ? { ...bundle, isAvailable: !bundle.isAvailable }
-        : bundle
-    );
+  const handleDeleteBundle = (bundleId: string) => {
+    const newBundles = bundles.filter(b => b.id !== bundleId);
     updateBundles(newBundles);
     toast({
       title: "Berhasil",
-      description: "Status bundle berhasil diubah",
+      description: "Bundle berhasil dihapus",
     });
+  };
+
+  const calculateBundleValue = (bundleProducts: BundleProduct[]) => {
+    return bundleProducts.reduce((total, bundleProduct) => {
+      const product = products.find(p => p.id === bundleProduct.productId);
+      return total + (product ? product.price * bundleProduct.quantity : 0);
+    }, 0);
   };
 
   return (
@@ -207,7 +192,7 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
           <h3 className="text-lg font-semibold">Manajemen Bundle</h3>
           <p className="text-sm text-muted-foreground">Kelola paket produk bundling</p>
         </div>
-        <Button onClick={handleCreateBundle} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={handleCreateBundle}>
           <Plus className="h-4 w-4 mr-2" />
           Buat Bundle
         </Button>
@@ -215,19 +200,13 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {bundles.map((bundle) => (
-          <Card key={bundle.id} className="hover:shadow-md transition-shadow">
+          <Card key={bundle.id}>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">{bundle.name}</CardTitle>
-                <div className="flex items-center space-x-2">
-                  <Badge 
-                    variant={bundle.isAvailable ? "secondary" : "destructive"}
-                    className="cursor-pointer"
-                    onClick={() => toggleBundleAvailability(bundle.id)}
-                  >
-                    {bundle.isAvailable ? "Aktif" : "Nonaktif"}
-                  </Badge>
-                </div>
+                <Badge variant={bundle.isAvailable ? "secondary" : "destructive"}>
+                  {bundle.isAvailable ? "Aktif" : "Nonaktif"}
+                </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -236,15 +215,15 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
                   Rp {bundle.price.toLocaleString('id-ID')}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Hemat: Rp {Math.max(0, calculateBundleValue(bundle.products) - bundle.price).toLocaleString('id-ID')}
+                  Hemat: Rp {(calculateBundleValue(bundle.products) - bundle.price).toLocaleString('id-ID')}
                 </p>
               </div>
               
               <div>
                 <p className="text-xs font-medium mb-2">Produk dalam bundle:</p>
-                <div className="space-y-1 max-h-20 overflow-y-auto">
+                <div className="space-y-1">
                   {bundle.products.map((product, index) => (
-                    <div key={index} className="text-xs text-muted-foreground bg-gray-50 p-1 rounded">
+                    <div key={index} className="text-xs text-muted-foreground">
                       {product.productName} ({product.quantity}x)
                     </div>
                   ))}
@@ -256,7 +235,7 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
                   variant="outline"
                   size="sm"
                   onClick={() => handleEditBundle(bundle)}
-                  className="flex-1 hover:bg-blue-50"
+                  className="flex-1"
                 >
                   <Edit className="h-3 w-3 mr-1" />
                   Edit
@@ -265,7 +244,7 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
                   variant="outline"
                   size="sm"
                   onClick={() => handleDeleteBundle(bundle.id)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="h-3 w-3" />
                 </Button>
@@ -275,13 +254,7 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
         ))}
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={(open) => {
-        setIsDialogOpen(open);
-        if (!open) {
-          setBundleForm({ name: '', price: '', products: [] });
-          setEditingBundle(null);
-        }
-      }}>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
@@ -295,136 +268,102 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="bundleName">Nama Bundle *</Label>
+                <Label htmlFor="bundleName">Nama Bundle</Label>
                 <Input
                   id="bundleName"
                   value={bundleForm.name}
                   onChange={(e) => setBundleForm(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Masukkan nama bundle"
-                  className="focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bundlePrice">Harga Bundle (Rp) *</Label>
+                <Label htmlFor="bundlePrice">Harga Bundle</Label>
                 <Input
                   id="bundlePrice"
                   type="number"
                   value={bundleForm.price}
                   onChange={(e) => setBundleForm(prev => ({ ...prev, price: e.target.value }))}
                   placeholder="Masukkan harga bundle"
-                  min="0"
-                  className="focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label>Produk dalam Bundle *</Label>
-                <Button 
-                  type="button" 
-                  onClick={handleAddProduct} 
-                  size="sm"
-                  variant="outline"
-                  className="hover:bg-blue-50"
-                >
+                <Label>Produk dalam Bundle</Label>
+                <Button type="button" onClick={handleAddProduct} size="sm">
                   <Plus className="h-3 w-3 mr-1" />
                   Tambah Produk
                 </Button>
               </div>
 
-              {bundleForm.products.length === 0 ? (
-                <div className="text-center py-4 border-2 border-dashed border-gray-300 rounded-lg">
-                  <Package className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Belum ada produk dipilih</p>
-                </div>
-              ) : (
-                bundleForm.products.map((bundleProduct, index) => (
-                  <div key={index} className="flex items-end space-x-2 p-3 border rounded-lg bg-gray-50">
-                    <div className="flex-1">
-                      <Label className="text-xs">Produk *</Label>
-                      <Select
-                        value={bundleProduct.productId}
-                        onValueChange={(value) => handleUpdateBundleProduct(index, 'productId', value)}
-                      >
-                        <SelectTrigger className="focus:ring-2 focus:ring-blue-500">
-                          <SelectValue placeholder="Pilih produk" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {products
-                            .filter(product => 
-                              // Don't show products that are already selected in other bundle items
-                              !bundleForm.products.some((bp, i) => i !== index && bp.productId === product.id)
-                            )
-                            .map((product) => (
-                            <SelectItem key={product.id} value={product.id}>
-                              {product.name} - Rp {product.price.toLocaleString('id-ID')}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="w-20">
-                      <Label className="text-xs">Jumlah *</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={bundleProduct.quantity}
-                        onChange={(e) => handleUpdateBundleProduct(index, 'quantity', parseInt(e.target.value) || 1)}
-                        className="focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRemoveBundleProduct(index)}
-                      className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              {bundleForm.products.map((bundleProduct, index) => (
+                <div key={index} className="flex items-end space-x-2 p-3 border rounded-lg">
+                  <div className="flex-1">
+                    <Label className="text-xs">Produk</Label>
+                    <Select
+                      value={bundleProduct.productId}
+                      onValueChange={(value) => handleUpdateBundleProduct(index, 'productId', value)}
                     >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih produk" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products.map((product) => (
+                          <SelectItem key={product.id} value={product.id}>
+                            {product.name} - Rp {product.price.toLocaleString('id-ID')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                ))
-              )}
+                  <div className="w-20">
+                    <Label className="text-xs">Jumlah</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={bundleProduct.quantity}
+                      onChange={(e) => handleUpdateBundleProduct(index, 'quantity', parseInt(e.target.value) || 1)}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRemoveBundleProduct(index)}
+                    className="text-red-600"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
             </div>
 
-            {bundleForm.products.length > 0 && bundleForm.price && (
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="font-medium text-sm mb-2">Ringkasan Bundle:</h4>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span>Total nilai produk:</span>
-                    <span>Rp {calculateBundleValue(bundleForm.products).toLocaleString('id-ID')}</span>
-                  </div>
-                  <div className="flex justify-between font-medium">
-                    <span>Harga bundle:</span>
-                    <span>Rp {parseInt(bundleForm.price || '0').toLocaleString('id-ID')}</span>
-                  </div>
-                  <div className="flex justify-between text-green-600 font-medium">
-                    <span>Penghematan:</span>
-                    <span>Rp {Math.max(0, calculateBundleValue(bundleForm.products) - parseInt(bundleForm.price || '0')).toLocaleString('id-ID')}</span>
-                  </div>
+            {bundleForm.products.length > 0 && (
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex justify-between text-sm">
+                  <span>Total nilai produk:</span>
+                  <span>Rp {calculateBundleValue(bundleForm.products).toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex justify-between text-sm font-medium">
+                  <span>Harga bundle:</span>
+                  <span>Rp {parseInt(bundleForm.price || '0').toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Penghematan:</span>
+                  <span>Rp {Math.max(0, calculateBundleValue(bundleForm.products) - parseInt(bundleForm.price || '0')).toLocaleString('id-ID')}</span>
                 </div>
               </div>
             )}
           </div>
 
           <div className="flex space-x-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setIsDialogOpen(false)} 
-              className="flex-1"
-            >
-              <X className="h-4 w-4 mr-2" />
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
               Batal
             </Button>
-            <Button 
-              onClick={handleSaveBundle} 
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
-              disabled={!bundleForm.name.trim() || !bundleForm.price || bundleForm.products.length === 0}
-            >
+            <Button onClick={handleSaveBundle} className="flex-1">
               <Save className="h-4 w-4 mr-2" />
-              {editingBundle ? 'Update Bundle' : 'Simpan Bundle'}
+              {editingBundle ? 'Update' : 'Simpan'}
             </Button>
           </div>
         </DialogContent>
