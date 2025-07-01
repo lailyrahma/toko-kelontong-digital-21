@@ -17,7 +17,6 @@ const Analytics = () => {
     endDate: Date | undefined;
   }>({ startDate: undefined, endDate: undefined });
   const [selectedStat, setSelectedStat] = useState<{type: string, title: string, data: any} | null>(null);
-  const [stockPeriod, setStockPeriod] = useState('today');
 
   // Improved data generation based on period type
   const getSalesData = (range: string) => {
@@ -83,7 +82,7 @@ const Analytics = () => {
     }
   };
 
-  // Enhanced stock movement data
+  // Enhanced stock movement data with proper 3-month support
   const getStockMovementData = (period: string) => {
     switch (period) {
       case 'today':
@@ -109,6 +108,15 @@ const Analytics = () => {
           stockOut: Math.floor(Math.random() * 120) + 40
         }));
       
+      case 'quarter':
+        // Fixed: Generate proper 3-month data
+        const months = ['Bulan 1', 'Bulan 2', 'Bulan 3'];
+        return months.map(month => ({
+          name: month,
+          stockIn: Math.floor(Math.random() * 3000) + 1000,
+          stockOut: Math.floor(Math.random() * 2500) + 1200
+        }));
+      
       case 'year':
         const monthsYear = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         return monthsYear.map(month => ({
@@ -122,35 +130,60 @@ const Analytics = () => {
     }
   };
 
-  // Get category data based on date range
+  // Dynamic category data with varying percentages based on period
   const getCategoryData = (range: string) => {
     const multiplier = range === 'today' ? 0.1 : range === 'week' ? 0.5 : range === 'month' ? 2 : 1;
     
+    // Generate different percentage distributions based on period
+    const basePercentages = {
+      'today': [35, 25, 15, 12, 8, 5],
+      'yesterday': [32, 23, 18, 14, 8, 5],
+      'week': [28, 22, 20, 15, 10, 5],
+      'month': [30, 20, 18, 15, 12, 5],
+      'quarter': [25, 22, 20, 16, 12, 5],
+      'year': [30, 20, 18, 15, 12, 5],
+      'custom': [28, 21, 19, 16, 11, 5]
+    };
+
+    const percentages = basePercentages[range as keyof typeof basePercentages] || basePercentages['today'];
+    
     return [
-      { name: 'Sembako', value: 30, sales: Math.floor(13500000 * multiplier) },
-      { name: 'Minuman', value: 20, sales: Math.floor(9000000 * multiplier) },
-      { name: 'Makanan Instan', value: 18, sales: Math.floor(8100000 * multiplier) },
-      { name: 'Kebersihan', value: 15, sales: Math.floor(6750000 * multiplier) },
-      { name: 'Bundling', value: 12, sales: Math.floor(5400000 * multiplier) },
-      { name: 'Lainnya', value: 5, sales: Math.floor(2250000 * multiplier) },
+      { name: 'Sembako', value: percentages[0], sales: Math.floor(13500000 * multiplier * (percentages[0]/30)) },
+      { name: 'Minuman', value: percentages[1], sales: Math.floor(9000000 * multiplier * (percentages[1]/20)) },
+      { name: 'Makanan Instan', value: percentages[2], sales: Math.floor(8100000 * multiplier * (percentages[2]/18)) },
+      { name: 'Kebersihan', value: percentages[3], sales: Math.floor(6750000 * multiplier * (percentages[3]/15)) },
+      { name: 'Bundling', value: percentages[4], sales: Math.floor(5400000 * multiplier * (percentages[4]/12)) },
+      { name: 'Lainnya', value: percentages[5], sales: Math.floor(2250000 * multiplier * (percentages[5]/5)) },
     ];
   };
 
-  // Get top products based on date range
+  // Dynamic top products based on period
   const getTopProducts = (range: string) => {
-    const multiplier = range === 'today' ? 0.1 : range === 'week' ? 0.5 : range === 'month' ? 2 : 1;
+    const multiplier = range === 'today' ? 0.1 : range === 'week' ? 0.5 : range === 'month' ? 2 : range === 'quarter' ? 6 : range === 'year' ? 12 : 1;
     
-    return [
-      { name: 'Beras Premium 5kg', sold: Math.floor(125 * multiplier), revenue: Math.floor(9375000 * multiplier) },
-      { name: 'Minyak Goreng 1L', sold: Math.floor(89 * multiplier), revenue: Math.floor(1602000 * multiplier) },
-      { name: 'Paket Hemat Sembako (Bundling)', sold: Math.floor(45 * multiplier), revenue: Math.floor(4455000 * multiplier) },
-      { name: 'Indomie Goreng', sold: Math.floor(234 * multiplier), revenue: Math.floor(819000 * multiplier) },
-      { name: 'Teh Botol Sosro', sold: Math.floor(156 * multiplier), revenue: Math.floor(624000 * multiplier) },
-    ];
+    // Different top products for different periods
+    const productVariations = {
+      'today': [
+        { name: 'Indomie Goreng', sold: Math.floor(45 * multiplier), revenue: Math.floor(157500 * multiplier) },
+        { name: 'Teh Botol Sosro', sold: Math.floor(38 * multiplier), revenue: Math.floor(152000 * multiplier) },
+        { name: 'Beras Premium 5kg', sold: Math.floor(25 * multiplier), revenue: Math.floor(1875000 * multiplier) },
+        { name: 'Minyak Goreng 1L', sold: Math.floor(22 * multiplier), revenue: Math.floor(396000 * multiplier) },
+        { name: 'Paket Hemat Sembako', sold: Math.floor(8 * multiplier), revenue: Math.floor(792000 * multiplier) },
+      ],
+      'week': [
+        { name: 'Beras Premium 5kg', sold: Math.floor(125 * multiplier), revenue: Math.floor(9375000 * multiplier) },
+        { name: 'Paket Hemat Sembako', sold: Math.floor(45 * multiplier), revenue: Math.floor(4455000 * multiplier) },
+        { name: 'Minyak Goreng 1L', sold: Math.floor(89 * multiplier), revenue: Math.floor(1602000 * multiplier) },
+        { name: 'Indomie Goreng', sold: Math.floor(234 * multiplier), revenue: Math.floor(819000 * multiplier) },
+        { name: 'Teh Botol Sosro', sold: Math.floor(156 * multiplier), revenue: Math.floor(624000 * multiplier) },
+      ]
+    };
+
+    return productVariations[range as keyof typeof productVariations] || productVariations['week'];
   };
 
   const salesData = getSalesData(dateRange);
-  const stockMovement = getStockMovementData(dateRange); // Use same period as sales
+  const stockMovement = getStockMovementData(dateRange);
   const categoryData = getCategoryData(dateRange);
   const topProductsData = getTopProducts(dateRange);
 
@@ -386,7 +419,7 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Category Distribution */}
+            {/* Category Distribution - Fixed percentages */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-base md:text-xl">Distribusi Kategori</CardTitle>
@@ -403,7 +436,7 @@ const Analytics = () => {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, value }) => `${name} ${value}%`}
                         outerRadius={60}
                         fill="#8884d8"
                         dataKey="value"
@@ -412,14 +445,17 @@ const Analytics = () => {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip contentStyle={{ fontSize: '10px' }} />
+                      <Tooltip 
+                        formatter={(value, name) => [`${value}%`, name]}
+                        contentStyle={{ fontSize: '10px' }} 
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Stock Movement */}
+            {/* Stock Movement - Fixed for 3 months */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <div className="flex flex-col space-y-2">

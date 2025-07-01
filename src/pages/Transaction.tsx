@@ -251,9 +251,9 @@ const Transaction = () => {
           </Badge>
         </header>
 
-        <div className="flex-1 flex flex-col lg:flex-row min-h-0">
+        <div className="flex-1 flex flex-col lg:flex-row min-h-0 relative">
           {/* Products Section */}
-          <div className="flex-1 flex flex-col min-w-0 order-2 lg:order-1">
+          <div className="flex-1 flex flex-col min-w-0 lg:pr-80 xl:pr-96">
             <div className="p-3 md:p-6 border-b bg-white">
               <ProductFilters
                 searchTerm={searchTerm}
@@ -264,7 +264,7 @@ const Transaction = () => {
               />
             </div>
 
-            <div className="flex-1 p-3 md:p-6 bg-gray-50 overflow-auto">
+            <div className="flex-1 p-3 md:p-6 bg-gray-50 overflow-auto pb-32 lg:pb-6">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4">
                 {/* Regular Products */}
                 {filteredProducts.map((product) => (
@@ -293,32 +293,46 @@ const Transaction = () => {
             </div>
           </div>
 
-          {/* Cart Section - Fixed Height and Responsive */}
-          <div className="w-full lg:w-80 xl:w-96 border-l bg-white flex flex-col order-1 lg:order-2 max-h-[50vh] lg:max-h-full">
-            <div className="p-3 md:p-4 border-b flex-shrink-0">
+          {/* Fixed Cart Section - Shopee Style */}
+          <div className="fixed bottom-0 left-0 right-0 lg:absolute lg:right-0 lg:top-0 lg:bottom-auto w-full lg:w-80 xl:w-96 bg-white border-t lg:border-l lg:border-t-0 flex flex-col z-10">
+            {/* Mobile Cart Header - Only show on mobile */}
+            <div className="lg:hidden p-3 border-b flex items-center justify-between bg-white">
+              <h2 className="text-base font-semibold flex items-center">
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Keranjang ({getTotalItems()})
+              </h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearCart}
+                className="text-red-600"
+                disabled={cart.length === 0}
+              >
+                Kosongkan
+              </Button>
+            </div>
+
+            {/* Desktop Cart Header */}
+            <div className="hidden lg:block p-4 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-base md:text-lg font-semibold flex items-center">
-                  <ShoppingCart className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                <h2 className="text-lg font-semibold flex items-center">
+                  <ShoppingCart className="mr-2 h-5 w-5" />
                   Keranjang
                 </h2>
-                <Badge variant="secondary" className="lg:hidden">
-                  {getTotalItems()} item
-                </Badge>
               </div>
             </div>
 
-            {/* Scrollable Cart Items */}
-            <div className="flex-1 overflow-auto min-h-0">
+            {/* Cart Items - Scrollable */}
+            <div className="flex-1 overflow-auto max-h-40 lg:max-h-none">
               {cart.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
-                  <ShoppingCart className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                  <p>Keranjang kosong</p>
-                  <p className="text-sm">Tambahkan produk untuk memulai transaksi</p>
+                  <ShoppingCart className="mx-auto h-8 w-8 mb-2 opacity-50" />
+                  <p className="text-sm">Keranjang kosong</p>
                 </div>
               ) : (
-                <div className="p-3 md:p-4 space-y-3">
+                <div className="p-3 space-y-2">
                   {cart.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                    <div key={item.id} className="flex items-center space-x-3 p-2 border rounded-lg bg-gray-50">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-sm truncate">{item.name}</h3>
                         <p className="text-xs text-muted-foreground">
@@ -326,12 +340,12 @@ const Transaction = () => {
                           {item.type === 'bundle' && <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">Bundle</Badge>}
                         </p>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="h-6 w-6 p-0"
+                          className="h-7 w-7 p-0 rounded-full"
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
@@ -340,7 +354,7 @@ const Transaction = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="h-6 w-6 p-0"
+                          className="h-7 w-7 p-0 rounded-full"
                           disabled={item.type === 'product' && item.stock !== undefined && item.quantity >= item.stock}
                         >
                           <Plus className="h-3 w-3" />
@@ -349,7 +363,7 @@ const Transaction = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => removeFromCart(item.id)}
-                          className="h-6 w-6 p-0 text-red-600"
+                          className="h-7 w-7 p-0 text-red-600 ml-1"
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -362,8 +376,8 @@ const Transaction = () => {
 
             {/* Fixed Cart Summary - Always Visible */}
             {cart.length > 0 && (
-              <div className="border-t p-3 md:p-4 space-y-3 bg-white flex-shrink-0">
-                <div className="space-y-2">
+              <div className="border-t p-3 bg-white">
+                <div className="space-y-2 mb-3">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal ({getTotalItems()} item)</span>
                     <span>Rp {getTotalPrice().toLocaleString('id-ID')}</span>
@@ -379,14 +393,14 @@ const Transaction = () => {
                   <Button
                     variant="outline"
                     onClick={clearCart}
-                    className="flex-1"
+                    className="flex-1 hidden lg:flex"
                     size="sm"
                   >
                     Kosongkan
                   </Button>
                   <Button
                     onClick={() => setIsPaymentOpen(true)}
-                    className="flex-1"
+                    className="flex-1 lg:flex-1"
                     size="sm"
                   >
                     <Receipt className="mr-2 h-4 w-4" />
