@@ -365,7 +365,7 @@ const Transaction = () => {
                               Rp {item.price.toLocaleString('id-ID')}
                             </p>
                             {item.type === 'bundle' && (
-                              <Badge variant="outline" size="sm" className="mt-1">
+                              <Badge variant="outline" className="mt-1">
                                 Bundle
                               </Badge>
                             )}
