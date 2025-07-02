@@ -392,7 +392,7 @@ const Stock = () => {
                 <div className="flex items-center space-x-2 text-yellow-800">
                   <AlertTriangle className="h-4 w-4" />
                   <p className="text-sm">
-                    <strong>Info:</strong> Sebagai kasir, Anda dapat melihat stok produk, namun hanya pemilik yang dapat menambah atau mengedit produk.
+                    <strong>Info:</strong> Sebagai kasir, Anda dapat melihat stok produk dan bundling, namun hanya pemilik yang dapat menambah atau mengedit produk.
                   </p>
                 </div>
               </CardContent>
@@ -402,7 +402,7 @@ const Stock = () => {
           <Tabs defaultValue="products" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="products">Produk Satuan</TabsTrigger>
-              {isOwner && <TabsTrigger value="bundles">Bundling Produk</TabsTrigger>}
+              <TabsTrigger value="bundles">Bundling Produk</TabsTrigger>
             </TabsList>
 
             <TabsContent value="products">
@@ -783,11 +783,11 @@ const Stock = () => {
               )}
             </TabsContent>
 
-            {/* Bundles Tab - Only for Owner */}
-            {isOwner && (
-              <TabsContent value="bundles">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-semibold">Bundling Produk</h2>
+            {/* Bundles Tab - Now available for both roles */}
+            <TabsContent value="bundles">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Bundling Produk</h2>
+                {isOwner && (
                   <Dialog open={showAddBundleDialog} onOpenChange={setShowAddBundleDialog}>
                     <DialogTrigger asChild>
                       <Button>
@@ -891,25 +891,32 @@ const Stock = () => {
                       </div>
                     </DialogContent>
                   </Dialog>
-                </div>
+                )}
+                {!isOwner && (
+                  <div className="text-sm text-muted-foreground bg-gray-100 px-3 py-2 rounded">
+                    Hanya dapat melihat - Edit oleh pemilik
+                  </div>
+                )}
+              </div>
 
-                {/* Bundles Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {bundles.map((bundle) => (
-                    <Card key={bundle.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="aspect-square bg-gray-100 rounded-lg w-20 h-20 flex items-center justify-center overflow-hidden">
-                            {bundle.image ? (
-                              <img 
-                                src={bundle.image} 
-                                alt={bundle.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Package className="h-10 w-10 text-muted-foreground" />
-                            )}
-                          </div>
+              {/* Bundles Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {bundles.map((bundle) => (
+                  <Card key={bundle.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="aspect-square bg-gray-100 rounded-lg w-20 h-20 flex items-center justify-center overflow-hidden">
+                          {bundle.image ? (
+                            <img 
+                              src={bundle.image} 
+                              alt={bundle.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Package className="h-10 w-10 text-muted-foreground" />
+                          )}
+                        </div>
+                        {isOwner && (
                           <div className="flex space-x-1">
                             <Button
                               variant="ghost"
@@ -926,42 +933,49 @@ const Stock = () => {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
+                        )}
+                        {!isOwner && (
+                          <div className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
+                            View Only
+                          </div>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <h3 className="font-medium mb-2 line-clamp-2">{bundle.name}</h3>
+                      <div className="space-y-2">
+                        <div>
+                          <span className="text-sm text-muted-foreground">Komposisi:</span>
+                          <p className="text-sm">
+                            {bundle.products.map(p => `${p.productName} (${p.quantity}x)`).join(', ')}
+                          </p>
                         </div>
-                      </CardHeader>
-                      <CardContent>
-                        <h3 className="font-medium mb-2 line-clamp-2">{bundle.name}</h3>
-                        <div className="space-y-2">
-                          <div>
-                            <span className="text-sm text-muted-foreground">Komposisi:</span>
-                            <p className="text-sm">
-                              {bundle.products.map(p => `${p.productName} (${p.quantity}x)`).join(', ')}
-                            </p>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Harga:</span>
-                            <span className="font-medium">Rp {bundle.price.toLocaleString('id-ID')}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm">Status:</span>
-                            <Badge variant={bundle.isAvailable ? 'secondary' : 'destructive'}>
-                              {bundle.isAvailable ? 'Tersedia' : 'Tidak Tersedia'}
-                            </Badge>
-                          </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Harga:</span>
+                          <span className="font-medium">Rp {bundle.price.toLocaleString('id-ID')}</span>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Status:</span>
+                          <Badge variant={bundle.isAvailable ? 'secondary' : 'destructive'}>
+                            {bundle.isAvailable ? 'Tersedia' : 'Tidak Tersedia'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
 
-                {bundles.length === 0 && (
-                  <div className="text-center py-12">
-                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-lg text-muted-foreground">Belum ada bundling yang dibuat</p>
+              {bundles.length === 0 && (
+                <div className="text-center py-12">
+                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg text-muted-foreground">Belum ada bundling yang dibuat</p>
+                  {isOwner && (
                     <p className="text-sm text-muted-foreground">Klik "Tambah Bundling" untuk membuat paket produk pertama</p>
-                  </div>
-                )}
-              </TabsContent>
-            )}
+                  )}
+                </div>
+              )}
+            </TabsContent>
           </Tabs>
         </main>
 
