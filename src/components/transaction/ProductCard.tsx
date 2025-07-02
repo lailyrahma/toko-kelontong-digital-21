@@ -121,12 +121,11 @@ const ProductCard = ({ product, bundle, onAddToCart }: ProductCardProps) => {
         <Button 
           onClick={handleAddToCart}
           disabled={!isAvailable}
-          className="w-full mt-auto h-7 sm:h-8 text-[10px] sm:text-xs"
+          className="w-full mt-auto h-8 text-xs bg-blue-500 hover:bg-blue-600 text-white font-medium"
           size="sm"
         >
-          <Plus className="mr-1 h-3 w-3" />
-          <span className="hidden xs:inline">Tambah</span>
-          <span className="xs:hidden">+</span>
+          <Plus className="mr-1 h-4 w-4" />
+          Tambah
         </Button>
       </CardContent>
     </Card>
