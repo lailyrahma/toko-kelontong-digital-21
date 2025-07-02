@@ -249,21 +249,78 @@ const Analytics = () => {
       'custom': 1
     };
 
-    const multiplier = multipliers[period] || 1;
-    
-    const getPerformanceChange = (current: number, previous: number) => {
-      const change = ((current - previous) / previous) * 100;
-      return change > 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
+    // Enhanced percentage calculation based on period
+    const getPercentageChanges = (period: string) => {
+      switch (period) {
+        case 'today':
+          return {
+            sales: '+5.2%',
+            transactions: '+3.8%',
+            products: '+7.1%',
+            average: '+2.4%'
+          };
+        case 'yesterday':
+          return {
+            sales: '+4.1%',
+            transactions: '+2.9%',
+            products: '+6.3%',
+            average: '+1.8%'
+          };
+        case 'week':
+          return {
+            sales: '+12.5%',
+            transactions: '+8.2%',
+            products: '+15.3%',
+            average: '+4.1%'
+          };
+        case 'month':
+          return {
+            sales: '+18.7%',
+            transactions: '+12.1%',
+            products: '+22.4%',
+            average: '+6.8%'
+          };
+        case 'quarter':
+          return {
+            sales: '+25.3%',
+            transactions: '+19.6%',
+            products: '+28.1%',
+            average: '+8.9%'
+          };
+        case 'year':
+          return {
+            sales: '+45.2%',
+            transactions: '+38.7%',
+            products: '+52.3%',
+            average: '+12.4%'
+          };
+        case 'custom':
+          return {
+            sales: '+15.8%',
+            transactions: '+11.2%',
+            products: '+18.6%',
+            average: '+5.7%'
+          };
+        default:
+          return {
+            sales: '+12.5%',
+            transactions: '+8.2%',
+            products: '+15.3%',
+            average: '+4.1%'
+          };
+      }
     };
 
+    const multiplier = multipliers[period] || 1;
+    const percentages = getPercentageChanges(period);
+    
     const currentSales = baseSales * multiplier;
-    const previousSales = baseSales * multiplier * 0.88;
     
     return [
       {
         title: 'Total Penjualan',
         value: `Rp ${(currentSales / 1000000).toFixed(1)} Juta`,
-        change: getPerformanceChange(currentSales, previousSales),
+        change: percentages.sales,
         icon: DollarSign,
         description: getPeriodDescription(period),
         type: 'sales',
@@ -272,7 +329,7 @@ const Analytics = () => {
       {
         title: 'Total Transaksi',
         value: Math.round(baseTransactions * multiplier).toLocaleString(),
-        change: '+8.2%',
+        change: percentages.transactions,
         icon: ShoppingCart,
         description: getPeriodDescription(period),
         type: 'transactions',
@@ -281,7 +338,7 @@ const Analytics = () => {
       {
         title: 'Produk Terjual',
         value: Math.round(baseProducts * multiplier).toLocaleString(),
-        change: '+15.3%',
+        change: percentages.products,
         icon: Package,
         description: 'Unit terjual',
         type: 'products',
@@ -290,7 +347,7 @@ const Analytics = () => {
       {
         title: 'Rata-rata per Transaksi',
         value: `Rp ${baseAverage.toLocaleString()}`,
-        change: '+4.1%',
+        change: percentages.average,
         icon: TrendingUp,
         description: 'Per transaksi',
         type: 'average',
