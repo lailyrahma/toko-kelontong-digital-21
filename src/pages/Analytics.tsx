@@ -67,15 +67,32 @@ const Analytics = () => {
         }));
       
       case 'custom':
-        const customDays = Math.abs(
-          Math.floor((customDateRange.endDate?.getTime() || Date.now()) - 
-                    (customDateRange.startDate?.getTime() || Date.now())) / (1000 * 60 * 60 * 24)
-        ) + 1;
-        return Array.from({length: Math.min(customDays, 31)}, (_, i) => ({
-          name: `Hari ${i + 1}`,
-          sales: Math.random() * 2000000 + 800000,
-          transactions: Math.floor(Math.random() * 35) + 10
-        }));
+        if (!customDateRange.startDate || !customDateRange.endDate) {
+          return [];
+        }
+        
+        const startDate = new Date(customDateRange.startDate);
+        const endDate = new Date(customDateRange.endDate);
+        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        
+        return Array.from({length: Math.min(diffDays, 31)}, (_, i) => {
+          const currentDate = new Date(startDate);
+          currentDate.setDate(startDate.getDate() + i);
+          
+          const day = currentDate.getDate().toString().padStart(2, '0');
+          const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+          const year = currentDate.getFullYear();
+          
+          // Format: DD/MM atau DD/MM/YYYY tergantung space
+          const name = diffDays <= 15 ? `${day}/${month}/${year}` : `${day}/${month}`;
+          
+          return {
+            name,
+            sales: Math.random() * 2000000 + 800000,
+            transactions: Math.floor(Math.random() * 35) + 10
+          };
+        });
       
       default:
         return [];
@@ -124,6 +141,33 @@ const Analytics = () => {
           stockIn: Math.floor(Math.random() * 3000) + 1000,
           stockOut: Math.floor(Math.random() * 2500) + 1200
         }));
+      
+      case 'custom':
+        if (!customDateRange.startDate || !customDateRange.endDate) {
+          return [];
+        }
+        
+        const startDate = new Date(customDateRange.startDate);
+        const endDate = new Date(customDateRange.endDate);
+        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        
+        return Array.from({length: Math.min(diffDays, 31)}, (_, i) => {
+          const currentDate = new Date(startDate);
+          currentDate.setDate(startDate.getDate() + i);
+          
+          const day = currentDate.getDate().toString().padStart(2, '0');
+          const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+          const year = currentDate.getFullYear();
+          
+          const name = diffDays <= 15 ? `${day}/${month}/${year}` : `${day}/${month}`;
+          
+          return {
+            name,
+            stockIn: Math.floor(Math.random() * 150) + 30,
+            stockOut: Math.floor(Math.random() * 120) + 40
+          };
+        });
       
       default:
         return [];

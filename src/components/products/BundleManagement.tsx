@@ -142,12 +142,23 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
       return;
     }
 
+    // Validate that all products are selected
+    const hasEmptyProducts = bundleForm.products.some(p => !p.productId);
+    if (hasEmptyProducts) {
+      toast({
+        title: "Kesalahan",
+        description: "Harap pilih semua produk dalam bundle",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newBundle: Bundle = {
       id: editingBundle ? editingBundle.id : `b${Date.now()}`,
       name: bundleForm.name,
       price: parseInt(bundleForm.price),
       products: bundleForm.products,
-      isAvailable: true
+      isAvailable: editingBundle ? editingBundle.isAvailable : true
     };
 
     let newBundles;
@@ -178,6 +189,19 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
     });
   };
 
+  const toggleBundleAvailability = (bundleId: string) => {
+    const newBundles = bundles.map(b => 
+      b.id === bundleId ? { ...b, isAvailable: !b.isAvailable } : b
+    );
+    updateBundles(newBundles);
+    
+    const bundle = bundles.find(b => b.id === bundleId);
+    toast({
+      title: "Berhasil",
+      description: `Bundle ${bundle?.isAvailable ? 'dinonaktifkan' : 'diaktifkan'}`,
+    });
+  };
+
   const calculateBundleValue = (bundleProducts: BundleProduct[]) => {
     return bundleProducts.reduce((total, bundleProduct) => {
       const product = products.find(p => p.id === bundleProduct.productId);
@@ -204,7 +228,11 @@ const BundleManagement = ({ products, onBundleChange }: BundleManagementProps) =
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">{bundle.name}</CardTitle>
-                <Badge variant={bundle.isAvailable ? "secondary" : "destructive"}>
+                <Badge 
+                  variant={bundle.isAvailable ? "secondary" : "destructive"}
+                  className="cursor-pointer"
+                  onClick={() => toggleBundleAvailability(bundle.id)}
+                >
                   {bundle.isAvailable ? "Aktif" : "Nonaktif"}
                 </Badge>
               </div>
