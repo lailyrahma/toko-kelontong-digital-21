@@ -122,9 +122,9 @@ const Profile = () => {
   };
 
   const getTabsCount = () => {
-    let count = 2; // Profile dan Security selalu ada
+    let count = 3; // Profile, Security, dan Store selalu ada
     if (user?.role === 'pemilik') {
-      count += 2; // Store dan Cashiers
+      count += 1; // Cashiers hanya untuk pemilik
     }
     return count;
   };
@@ -145,11 +145,9 @@ const Profile = () => {
             <TabsList className={`grid w-full grid-cols-${getTabsCount()}`}>
               <TabsTrigger value="profile">Profil Saya</TabsTrigger>
               <TabsTrigger value="security">Keamanan</TabsTrigger>
+              <TabsTrigger value="store">Informasi Toko</TabsTrigger>
               {user?.role === 'pemilik' && (
-                <>
-                  <TabsTrigger value="store">Informasi Toko</TabsTrigger>
-                  <TabsTrigger value="cashiers">Manajemen Kasir</TabsTrigger>
-                </>
+                <TabsTrigger value="cashiers">Manajemen Kasir</TabsTrigger>
               )}
             </TabsList>
 
@@ -345,20 +343,23 @@ const Profile = () => {
               </div>
             </TabsContent>
 
-            {/* Store Information Tab - Only for Owner */}
-            {user?.role === 'pemilik' && (
-              <TabsContent value="store">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Store className="h-5 w-5" />
-                      <span>Informasi Toko</span>
-                    </CardTitle>
-                    <CardDescription>
-                      Kelola informasi dasar toko Anda
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
+            {/* Store Information Tab - For both Cashier and Owner */}
+            <TabsContent value="store">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Store className="h-5 w-5" />
+                    <span>Informasi Toko</span>
+                  </CardTitle>
+                  <CardDescription>
+                    {user?.role === 'pemilik' 
+                      ? 'Kelola informasi dasar toko Anda'
+                      : 'Lihat informasi toko tempat Anda bekerja'
+                    }
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {user?.role === 'pemilik' ? (
                     <form onSubmit={handleStoreSubmit} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -427,10 +428,74 @@ const Profile = () => {
                         {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
                       </Button>
                     </form>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            )}
+                  ) : (
+                    // Read-only view for cashiers
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Nama Toko</Label>
+                          <div className="relative">
+                            <Store className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              type="text"
+                              value={store.name}
+                              disabled
+                              className="pl-10 bg-gray-100"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Email Toko</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              type="email"
+                              value={store.email}
+                              disabled
+                              className="pl-10 bg-gray-100"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Nomor Telepon Toko</Label>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              type="tel"
+                              value={store.phone}
+                              disabled
+                              className="pl-10 bg-gray-100"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Alamat Toko</Label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <textarea
+                            value={store.address}
+                            disabled
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md bg-gray-100 resize-none"
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="text-sm text-gray-500 bg-blue-50 p-3 rounded-md">
+                        <p className="flex items-center">
+                          <Shield className="h-4 w-4 mr-2" />
+                          Anda dapat melihat informasi toko tetapi tidak dapat mengubahnya. Hubungi pemilik toko untuk melakukan perubahan.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             {/* Cashier Management Tab - Only for Owner */}
             {user?.role === 'pemilik' && (
