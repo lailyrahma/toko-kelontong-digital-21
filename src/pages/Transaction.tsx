@@ -51,6 +51,7 @@ const Transaction = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [lastTransaction, setLastTransaction] = useState<any>(null);
   const { toast } = useToast();
 
@@ -99,7 +100,6 @@ const Transaction = () => {
     }
   ];
 
-  // Sample bundles
   const bundles: Bundle[] = [
     {
       id: 'b1',
@@ -264,7 +264,7 @@ const Transaction = () => {
               />
             </div>
 
-            <div className="flex-1 p-3 md:p-6 bg-gray-50 overflow-auto pb-32 lg:pb-6">
+            <div className="flex-1 p-3 md:p-6 bg-gray-50 overflow-auto pb-20 lg:pb-6">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4">
                 {/* Regular Products */}
                 {filteredProducts.map((product) => (
@@ -293,37 +293,27 @@ const Transaction = () => {
             </div>
           </div>
 
-          {/* Fixed Cart Section - Shopee Style */}
-          <div className="fixed bottom-0 left-0 right-0 lg:absolute lg:right-0 lg:top-0 lg:bottom-auto w-full lg:w-80 xl:w-96 bg-white border-t lg:border-l lg:border-t-0 flex flex-col z-10">
-            {/* Mobile Cart Header - Only show on mobile */}
-            <div className="lg:hidden p-3 border-b flex items-center justify-between bg-white">
-              <h2 className="text-base font-semibold flex items-center">
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Keranjang ({getTotalItems()})
-              </h2>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={clearCart}
-                className="text-red-600"
-                disabled={cart.length === 0}
-              >
-                Kosongkan
-              </Button>
-            </div>
-
-            {/* Desktop Cart Header */}
-            <div className="hidden lg:block p-4 border-b">
+          {/* Desktop Cart Section */}
+          <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-80 xl:w-96 bg-white border-l flex flex-col">
+            <div className="p-4 border-b">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold flex items-center">
                   <ShoppingCart className="mr-2 h-5 w-5" />
                   Keranjang
                 </h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearCart}
+                  className="text-red-600"
+                  disabled={cart.length === 0}
+                >
+                  Kosongkan
+                </Button>
               </div>
             </div>
 
-            {/* Cart Items - Scrollable */}
-            <div className="flex-1 overflow-auto max-h-40 lg:max-h-none">
+            <div className="flex-1 overflow-auto">
               {cart.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
                   <ShoppingCart className="mx-auto h-8 w-8 mb-2 opacity-50" />
@@ -374,7 +364,6 @@ const Transaction = () => {
               )}
             </div>
 
-            {/* Fixed Cart Summary - Always Visible */}
             {cart.length > 0 && (
               <div className="border-t p-3 bg-white">
                 <div className="space-y-2 mb-3">
@@ -388,29 +377,158 @@ const Transaction = () => {
                     <span>Rp {getTotalPrice().toLocaleString('id-ID')}</span>
                   </div>
                 </div>
+                <Button
+                  onClick={() => setIsPaymentOpen(true)}
+                  className="w-full"
+                  size="sm"
+                >
+                  <Receipt className="mr-2 h-4 w-4" />
+                  Bayar
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
 
+        {/* Mobile Cart Button - Fixed at bottom */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
+          {cart.length === 0 ? (
+            <div className="p-4 text-center">
+              <div className="flex items-center justify-center space-x-2 text-gray-400">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="text-sm">Keranjang kosong</span>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3">
+              <div className="flex items-center space-x-3">
+                {/* Cart Button */}
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCartOpen(true)}
+                  className="flex-1 relative border-blue-200 hover:border-blue-300"
+                >
+                  <div className="flex items-center space-x-2">
+                    <div className="relative">
+                      <ShoppingCart className="h-5 w-5 text-blue-600" />
+                      <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {getTotalItems()}
+                      </span>
+                    </div>
+                    <span className="text-sm font-medium text-blue-600">
+                      Rp {getTotalPrice().toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                </Button>
+
+                {/* Checkout Button */}
+                <Button
+                  onClick={() => setIsPaymentOpen(true)}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  <span className="font-medium">Checkout</span>
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Cart Modal */}
+        {isCartOpen && (
+          <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setIsCartOpen(false)}>
+            <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="p-4 border-b flex items-center justify-between">
+                <h2 className="text-lg font-semibold flex items-center">
+                  <ShoppingCart className="mr-2 h-5 w-5" />
+                  Keranjang ({getTotalItems()} item)
+                </h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearCart}
+                  className="text-red-600"
+                >
+                  Kosongkan
+                </Button>
+              </div>
+              
+              <div className="flex-1 overflow-auto p-3 space-y-2">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex items-center space-x-3 p-3 border rounded-lg bg-gray-50">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-sm truncate">{item.name}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Rp {item.price.toLocaleString('id-ID')}
+                        {item.type === 'bundle' && <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">Bundle</Badge>}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        className="h-8 w-8 p-0 rounded-full"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="h-8 w-8 p-0 rounded-full"
+                        disabled={item.type === 'product' && item.stock !== undefined && item.quantity >= item.stock}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFromCart(item.id)}
+                        className="h-8 w-8 p-0 text-red-600 ml-1"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t p-4 bg-white">
+                <div className="space-y-2 mb-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal ({getTotalItems()} item)</span>
+                    <span>Rp {getTotalPrice().toLocaleString('id-ID')}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-semibold">
+                    <span>Total</span>
+                    <span>Rp {getTotalPrice().toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
                 <div className="flex space-x-2">
                   <Button
                     variant="outline"
-                    onClick={clearCart}
-                    className="flex-1 hidden lg:flex"
-                    size="sm"
+                    onClick={() => setIsCartOpen(false)}
+                    className="flex-1"
                   >
-                    Kosongkan
+                    Lanjut Belanja
                   </Button>
                   <Button
-                    onClick={() => setIsPaymentOpen(true)}
-                    className="flex-1 lg:flex-1"
-                    size="sm"
+                    onClick={() => {
+                      setIsCartOpen(false);
+                      setIsPaymentOpen(true);
+                    }}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700"
                   >
                     <Receipt className="mr-2 h-4 w-4" />
                     Bayar
                   </Button>
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <PaymentDialog
