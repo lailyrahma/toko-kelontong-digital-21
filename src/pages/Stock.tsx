@@ -236,7 +236,7 @@ const Stock = () => {
   const handleEditProduct = () => {
     if (!editingProduct || !isOwner) return;
 
-    const updatedProduct = { ...editingProduct, image: selectedImage || undefined };
+    const updatedProduct = { ...editingProduct, image: selectedImage || editingProduct.image };
     setProducts(products.map(p => 
       p.id === editingProduct.id ? updatedProduct : p
     ));
@@ -281,7 +281,7 @@ const Stock = () => {
   const handleEditBundle = () => {
     if (!editingBundle || !isOwner) return;
 
-    const updatedBundle = { ...editingBundle, image: selectedImage || undefined };
+    const updatedBundle = { ...editingBundle, image: selectedImage || editingBundle.image };
     setBundles(bundles.map(b => 
       b.id === editingBundle.id ? updatedBundle : b
     ));
@@ -368,6 +368,54 @@ const Stock = () => {
     setNewBundle({
       ...newBundle,
       products: newBundle.products.map(p =>
+        p.productId === productId ? { ...p, quantity } : p
+      )
+    });
+  };
+
+  // Functions for editing bundle products in edit dialog
+  const addProductToBundleEdit = (productId: string) => {
+    if (!editingBundle) return;
+    
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+
+    const existingProduct = editingBundle.products.find(p => p.productId === productId);
+    if (existingProduct) {
+      setEditingBundle({
+        ...editingBundle,
+        products: editingBundle.products.map(p =>
+          p.productId === productId ? { ...p, quantity: p.quantity + 1 } : p
+        )
+      });
+    } else {
+      setEditingBundle({
+        ...editingBundle,
+        products: [...editingBundle.products, { productId, productName: product.name, quantity: 1 }]
+      });
+    }
+  };
+
+  const removeProductFromBundleEdit = (productId: string) => {
+    if (!editingBundle) return;
+    
+    setEditingBundle({
+      ...editingBundle,
+      products: editingBundle.products.filter(p => p.productId !== productId)
+    });
+  };
+
+  const updateBundleProductQuantityEdit = (productId: string, quantity: number) => {
+    if (!editingBundle) return;
+    
+    if (quantity <= 0) {
+      removeProductFromBundleEdit(productId);
+      return;
+    }
+    
+    setEditingBundle({
+      ...editingBundle,
+      products: editingBundle.products.map(p =>
         p.productId === productId ? { ...p, quantity } : p
       )
     });
@@ -1117,6 +1165,208 @@ const Stock = () => {
                       Batal
                     </Button>
                     <Button onClick={handleEditProduct} className="flex-1">
+                      Simpan Perubahan
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Edit Bundle Dialog - Only for Owner */}
+        {isOwner && (
+          <Dialog open={showEditBundleDialog} onOpenChange={setShowEditBundleDialog}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Edit Bundling</DialogTitle>
+              </DialogHeader>
+              {editingBundle && (
+                <div className="space-y-6">
+                  {/* Image Selection Section */}
+                  <div className="space-y-4">
+                    <Label>Pilih Gambar Bundling</Label>
+                    
+                    {selectedImage && (
+                      <Card>
+                        <CardContent className="p-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
+                              <img 
+                                src={selectedImage} 
+                                alt="Preview" 
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">Gambar Dipilih</p>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => setSelectedImage('')}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Image Library */}
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <h4 className="text-sm font-medium">Cari Gambar Bundling</h4>
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              placeholder="Cari gambar bundling..."
+                              value={imageSearchQuery}
+                              onChange={(e) => setImageSearchQuery(e.target.value)}
+                              className="pl-10"
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                            {getFilteredImages().map((image, index) => (
+                              <Card 
+                                key={index}
+                                className={`cursor-pointer transition-all hover:shadow-md ${
+                                  selectedImage === image.url ? 'ring-2 ring-primary' : ''
+                                }`}
+                                onClick={() => setSelectedImage(image.url)}
+                              >
+                                <CardContent className="p-2">
+                                  <div className="aspect-square bg-gray-100 rounded overflow-hidden">
+                                    <img 
+                                      src={image.url} 
+                                      alt={image.name}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <p className="text-xs text-center mt-1 truncate">{image.name}</p>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* No Image Option */}
+                    <Card 
+                      className={`cursor-pointer transition-all hover:shadow-md ${
+                        selectedImage === '' ? 'ring-2 ring-primary' : ''
+                      }`}
+                      onClick={() => setSelectedImage('')}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <Package className="h-6 w-6 text-gray-400" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Tanpa Foto</p>
+                            <p className="text-xs text-muted-foreground">Gunakan icon default</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Bundle Details */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="edit-bundle-name">Nama Bundling</Label>
+                      <Input
+                        id="edit-bundle-name"
+                        value={editingBundle.name}
+                        onChange={(e) => setEditingBundle({...editingBundle, name: e.target.value})}
+                        placeholder="Masukkan nama bundling"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Pilih Produk untuk Bundling</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded p-2">
+                        {products.map(product => (
+                          <Card key={product.id} className="p-2">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">{product.name}</p>
+                                <p className="text-xs text-muted-foreground">Rp {product.price.toLocaleString('id-ID')}</p>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => addProductToBundleEdit(product.id)}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+
+                    {editingBundle.products.length > 0 && (
+                      <div>
+                        <Label>Produk dalam Bundling</Label>
+                        <div className="space-y-2">
+                          {editingBundle.products.map(bundleProduct => (
+                            <Card key={bundleProduct.productId} className="p-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{bundleProduct.productName}</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => updateBundleProductQuantityEdit(bundleProduct.productId, bundleProduct.quantity - 1)}
+                                  >
+                                    -
+                                  </Button>
+                                  <span className="text-sm font-medium w-8 text-center">{bundleProduct.quantity}</span>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => updateBundleProductQuantityEdit(bundleProduct.productId, bundleProduct.quantity + 1)}
+                                  >
+                                    +
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeProductFromBundleEdit(bundleProduct.productId)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <Label htmlFor="edit-bundle-price">Harga Bundling</Label>
+                      <Input
+                        id="edit-bundle-price"
+                        type="number"
+                        value={editingBundle.price}
+                        onChange={(e) => setEditingBundle({...editingBundle, price: parseInt(e.target.value) || 0})}
+                        placeholder="Masukkan harga bundling"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <Button variant="outline" onClick={() => setShowEditBundleDialog(false)} className="flex-1">
+                      Batal
+                    </Button>
+                    <Button onClick={handleEditBundle} className="flex-1">
                       Simpan Perubahan
                     </Button>
                   </div>
