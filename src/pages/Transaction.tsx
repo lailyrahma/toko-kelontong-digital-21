@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -251,9 +250,9 @@ const Transaction = () => {
           </Badge>
         </header>
 
-        <div className="flex-1 flex flex-col lg:flex-row min-h-0 relative">
+        <div className="flex-1 flex min-h-0">
           {/* Products Section */}
-          <div className="flex-1 flex flex-col min-w-0 lg:pr-80 xl:pr-96">
+          <div className="flex-1 flex flex-col min-w-0">
             <div className="p-3 md:p-6 border-b bg-white">
               <ProductFilters
                 searchTerm={searchTerm}
@@ -294,7 +293,7 @@ const Transaction = () => {
           </div>
 
           {/* Desktop Cart Section */}
-          <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-80 xl:w-96 bg-white border-l flex flex-col">
+          <div className="hidden lg:block w-80 xl:w-96 bg-white border-l flex flex-col">
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold flex items-center">
@@ -401,13 +400,12 @@ const Transaction = () => {
             </div>
           ) : (
             <div className="p-3">
-              <div className="flex items-center space-x-3">
-                {/* Cart Button */}
-                <Button
-                  variant="outline"
-                  onClick={() => setIsCartOpen(true)}
-                  className="flex-1 relative border-blue-200 hover:border-blue-300"
-                >
+              <Button
+                variant="outline"
+                onClick={() => setIsCartOpen(true)}
+                className="w-full relative border-blue-200 hover:border-blue-300"
+              >
+                <div className="flex items-center justify-between w-full">
                   <div className="flex items-center space-x-2">
                     <div className="relative">
                       <ShoppingCart className="h-5 w-5 text-blue-600" />
@@ -416,19 +414,14 @@ const Transaction = () => {
                       </span>
                     </div>
                     <span className="text-sm font-medium text-blue-600">
-                      Rp {getTotalPrice().toLocaleString('id-ID')}
+                      Keranjang
                     </span>
                   </div>
-                </Button>
-
-                {/* Checkout Button */}
-                <Button
-                  onClick={() => setIsPaymentOpen(true)}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-                >
-                  <span className="font-medium">Checkout</span>
-                </Button>
-              </div>
+                  <span className="text-sm font-bold text-blue-600">
+                    Rp {getTotalPrice().toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </Button>
             </div>
           )}
         </div>
