@@ -3,8 +3,9 @@ import AppSidebar from '@/components/AppSidebar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, ShoppingCart, Package, DollarSign, Info } from 'lucide-react';
+import { TrendingUp, ShoppingCart, Package, DollarSign, Info, Clock, Calendar } from 'lucide-react';
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 import DateRangeFilter from '@/components/analytics/DateRangeFilter';
 import AnalyticsTransactionHistory from '@/components/analytics/AnalyticsTransactionHistory';
 import StatsDetailDialog from '@/components/analytics/StatsDetailDialog';
@@ -18,7 +19,6 @@ const Analytics = () => {
   }>({ startDate: undefined, endDate: undefined });
   const [selectedStat, setSelectedStat] = useState<{type: string, title: string, data: any} | null>(null);
 
-  // Improved data generation based on period type
   const getSalesData = (range: string) => {
     switch (range) {
       case 'today':
@@ -99,7 +99,6 @@ const Analytics = () => {
     }
   };
 
-  // Enhanced stock movement data with proper 3-month support
   const getStockMovementData = (period: string) => {
     switch (period) {
       case 'today':
@@ -174,11 +173,9 @@ const Analytics = () => {
     }
   };
 
-  // Dynamic category data with varying percentages based on period
   const getCategoryData = (range: string) => {
     const multiplier = range === 'today' ? 0.1 : range === 'week' ? 0.5 : range === 'month' ? 2 : 1;
     
-    // Generate different percentage distributions based on period
     const basePercentages = {
       'today': [35, 25, 15, 12, 8, 5],
       'yesterday': [32, 23, 18, 14, 8, 5],
@@ -192,46 +189,198 @@ const Analytics = () => {
     const percentages = basePercentages[range as keyof typeof basePercentages] || basePercentages['today'];
     
     return [
-      { name: 'Sembako', value: percentages[0], sales: Math.floor(13500000 * multiplier * (percentages[0]/30)) },
-      { name: 'Minuman', value: percentages[1], sales: Math.floor(9000000 * multiplier * (percentages[1]/20)) },
-      { name: 'Makanan Instan', value: percentages[2], sales: Math.floor(8100000 * multiplier * (percentages[2]/18)) },
-      { name: 'Kebersihan', value: percentages[3], sales: Math.floor(6750000 * multiplier * (percentages[3]/15)) },
-      { name: 'Bundling', value: percentages[4], sales: Math.floor(5400000 * multiplier * (percentages[4]/12)) },
-      { name: 'Lainnya', value: percentages[5], sales: Math.floor(2250000 * multiplier * (percentages[5]/5)) },
+      { 
+        name: 'Sembako', 
+        value: percentages[0], 
+        sales: Math.floor(13500000 * multiplier * (percentages[0]/30)),
+        description: 'Beras, minyak goreng, gula, tepung',
+        items: ['Beras Premium 5kg', 'Minyak Goreng 1L', 'Gula Pasir 1kg', 'Tepung Terigu']
+      },
+      { 
+        name: 'Minuman', 
+        value: percentages[1], 
+        sales: Math.floor(9000000 * multiplier * (percentages[1]/20)),
+        description: 'Teh, kopi, air mineral, soft drink',
+        items: ['Teh Botol Sosro', 'Kopi Kapal Api', 'Aqua 600ml', 'Coca Cola']
+      },
+      { 
+        name: 'Makanan Instan', 
+        value: percentages[2], 
+        sales: Math.floor(8100000 * multiplier * (percentages[2]/18)),
+        description: 'Mie instan, snack, biskuit',
+        items: ['Indomie Goreng', 'Chitato', 'Oreo', 'Pocky']
+      },
+      { 
+        name: 'Kebersihan', 
+        value: percentages[3], 
+        sales: Math.floor(6750000 * multiplier * (percentages[3]/15)),
+        description: 'Sabun, deterjen, shampoo, pasta gigi',
+        items: ['Sabun Lifebuoy', 'Rinso', 'Pantene', 'Pepsodent']
+      },
+      { 
+        name: 'Bundling', 
+        value: percentages[4], 
+        sales: Math.floor(5400000 * multiplier * (percentages[4]/12)),
+        description: 'Paket hemat berbagai kategori',
+        items: ['Paket Sembako', 'Paket Mandi', 'Paket Sarapan', 'Paket Snack']
+      },
+      { 
+        name: 'Lainnya', 
+        value: percentages[5], 
+        sales: Math.floor(2250000 * multiplier * (percentages[5]/5)),
+        description: 'Alat tulis, obat-obatan, aksesoris',
+        items: ['Pulpen', 'Bodrex', 'Baterai AA', 'Korek Api']
+      },
     ];
   };
 
-  // Dynamic top products based on period
   const getTopProducts = (range: string) => {
     const multiplier = range === 'today' ? 0.1 : range === 'week' ? 0.5 : range === 'month' ? 2 : range === 'quarter' ? 6 : range === 'year' ? 12 : 1;
     
-    // Different top products for different periods
+    const getTimingInfo = (range: string) => {
+      switch (range) {
+        case 'today':
+          return {
+            period: 'Hari ini',
+            timeDetails: ['08:00-12:00', '13:00-17:00', '18:00-22:00']
+          };
+        case 'yesterday':
+          return {
+            period: 'Kemarin',
+            timeDetails: ['Pagi: 30%', 'Siang: 45%', 'Malam: 25%']
+          };
+        case 'week':
+          return {
+            period: '7 hari terakhir',
+            timeDetails: ['Sen-Jum: 70%', 'Sabtu: 20%', 'Minggu: 10%']
+          };
+        case 'month':
+          return {
+            period: '30 hari terakhir',
+            timeDetails: ['Minggu 1-2: 60%', 'Minggu 3-4: 40%']
+          };
+        case 'quarter':
+          return {
+            period: '3 bulan terakhir',
+            timeDetails: ['Bulan 1: 35%', 'Bulan 2: 30%', 'Bulan 3: 35%']
+          };
+        case 'year':
+          return {
+            period: 'Tahun ini',
+            timeDetails: ['Q1: 25%', 'Q2: 30%', 'Q3: 25%', 'Q4: 20%']
+          };
+        default:
+          return {
+            period: 'Custom',
+            timeDetails: ['Terdistribusi merata']
+          };
+      }
+    };
+
+    const timing = getTimingInfo(range);
+
     const productVariations = {
       'today': [
-        { name: 'Indomie Goreng', sold: Math.floor(45 * multiplier), revenue: Math.floor(157500 * multiplier) },
-        { name: 'Teh Botol Sosro', sold: Math.floor(38 * multiplier), revenue: Math.floor(152000 * multiplier) },
-        { name: 'Beras Premium 5kg', sold: Math.floor(25 * multiplier), revenue: Math.floor(1875000 * multiplier) },
-        { name: 'Minyak Goreng 1L', sold: Math.floor(22 * multiplier), revenue: Math.floor(396000 * multiplier) },
-        { name: 'Paket Hemat Sembako', sold: Math.floor(8 * multiplier), revenue: Math.floor(792000 * multiplier) },
+        { 
+          name: 'Indomie Goreng', 
+          sold: Math.floor(45 * multiplier), 
+          revenue: Math.floor(157500 * multiplier),
+          category: 'Makanan Instan',
+          peakTime: '19:00-21:00',
+          trend: '+12%',
+          lastSold: '2 jam lalu'
+        },
+        { 
+          name: 'Teh Botol Sosro', 
+          sold: Math.floor(38 * multiplier), 
+          revenue: Math.floor(152000 * multiplier),
+          category: 'Minuman',
+          peakTime: '12:00-14:00',
+          trend: '+8%',
+          lastSold: '30 menit lalu'
+        },
+        { 
+          name: 'Beras Premium 5kg', 
+          sold: Math.floor(25 * multiplier), 
+          revenue: Math.floor(1875000 * multiplier),
+          category: 'Sembako',
+          peakTime: '08:00-10:00',
+          trend: '+15%',
+          lastSold: '1 jam lalu'
+        },
+        { 
+          name: 'Minyak Goreng 1L', 
+          sold: Math.floor(22 * multiplier), 
+          revenue: Math.floor(396000 * multiplier),
+          category: 'Sembako',
+          peakTime: '16:00-18:00',
+          trend: '+5%',
+          lastSold: '45 menit lalu'
+        },
+        { 
+          name: 'Paket Hemat Sembako', 
+          sold: Math.floor(8 * multiplier), 
+          revenue: Math.floor(792000 * multiplier),
+          category: 'Bundling',
+          peakTime: '09:00-11:00',
+          trend: '+20%',
+          lastSold: '3 jam lalu'
+        },
       ],
       'week': [
-        { name: 'Beras Premium 5kg', sold: Math.floor(125 * multiplier), revenue: Math.floor(9375000 * multiplier) },
-        { name: 'Paket Hemat Sembako', sold: Math.floor(45 * multiplier), revenue: Math.floor(4455000 * multiplier) },
-        { name: 'Minyak Goreng 1L', sold: Math.floor(89 * multiplier), revenue: Math.floor(1602000 * multiplier) },
-        { name: 'Indomie Goreng', sold: Math.floor(234 * multiplier), revenue: Math.floor(819000 * multiplier) },
-        { name: 'Teh Botol Sosro', sold: Math.floor(156 * multiplier), revenue: Math.floor(624000 * multiplier) },
+        { 
+          name: 'Beras Premium 5kg', 
+          sold: Math.floor(125 * multiplier), 
+          revenue: Math.floor(9375000 * multiplier),
+          category: 'Sembako',
+          peakTime: 'Senin-Rabu',
+          trend: '+18%',
+          lastSold: 'Hari ini'
+        },
+        { 
+          name: 'Paket Hemat Sembako', 
+          sold: Math.floor(45 * multiplier), 
+          revenue: Math.floor(4455000 * multiplier),
+          category: 'Bundling',
+          peakTime: 'Jumat-Minggu',
+          trend: '+25%',
+          lastSold: 'Kemarin'
+        },
+        { 
+          name: 'Minyak Goreng 1L', 
+          sold: Math.floor(89 * multiplier), 
+          revenue: Math.floor(1602000 * multiplier),
+          category: 'Sembako',
+          peakTime: 'Selasa-Kamis',
+          trend: '+10%',
+          lastSold: 'Hari ini'
+        },
+        { 
+          name: 'Indomie Goreng', 
+          sold: Math.floor(234 * multiplier), 
+          revenue: Math.floor(819000 * multiplier),
+          category: 'Makanan Instan',
+          peakTime: 'Sabtu-Minggu',
+          trend: '+15%',
+          lastSold: 'Hari ini'
+        },
+        { 
+          name: 'Teh Botol Sosro', 
+          sold: Math.floor(156 * multiplier), 
+          revenue: Math.floor(624000 * multiplier),
+          category: 'Minuman',
+          peakTime: 'Setiap hari',
+          trend: '+12%',
+          lastSold: 'Hari ini'
+        },
       ]
     };
 
-    return productVariations[range as keyof typeof productVariations] || productVariations['week'];
+    return {
+      products: productVariations[range as keyof typeof productVariations] || productVariations['week'],
+      timing
+    };
   };
-
-  const salesData = getSalesData(dateRange);
-  const stockMovement = getStockMovementData(dateRange);
-  const categoryData = getCategoryData(dateRange);
-  const topProductsData = getTopProducts(dateRange);
-
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
   const getStatsForPeriod = (period: string) => {
     const baseSales = 45200000;
@@ -249,7 +398,6 @@ const Analytics = () => {
       'custom': 1
     };
 
-    // Enhanced percentage calculation based on period
     const getPercentageChanges = (period: string) => {
       switch (period) {
         case 'today':
@@ -401,6 +549,13 @@ const Analytics = () => {
     }
   };
 
+  const salesData = getSalesData(dateRange);
+  const stockMovement = getStockMovementData(dateRange);
+  const categoryData = getCategoryData(dateRange);
+  const topProductsInfo = getTopProducts(dateRange);
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
   const stats = getStatsForPeriod(dateRange);
 
   const handleStatClick = (stat: any) => {
@@ -432,7 +587,6 @@ const Analytics = () => {
             onCustomDateRangeChange={setCustomDateRange}
           />
 
-          {/* Stats Overview */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
             {stats.map((stat, index) => (
               <Card 
@@ -476,9 +630,7 @@ const Analytics = () => {
             ))}
           </div>
 
-          {/* Enhanced Charts Section */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 md:gap-6">
-            {/* Sales Chart */}
             <Card className="xl:col-span-2 min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-base md:text-xl">
@@ -520,7 +672,6 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Category Distribution - Fixed percentages */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-base md:text-xl">Distribusi Kategori</CardTitle>
@@ -556,7 +707,6 @@ const Analytics = () => {
               </CardContent>
             </Card>
 
-            {/* Stock Movement - Fixed for 3 months */}
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
                 <div className="flex flex-col space-y-2">
@@ -601,24 +751,66 @@ const Analytics = () => {
             selectedDate={selectedDate}
           />
 
-          {/* Lower Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
             <Card className="min-w-0">
               <CardHeader className="p-3 md:p-6">
-                <CardTitle className="text-base md:text-xl">Produk Terlaris - {getPeriodTitle(dateRange)}</CardTitle>
-                <CardDescription className="text-xs md:text-sm">5 produk dengan penjualan tertinggi termasuk bundling</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base md:text-xl">
+                      Produk Terlaris - {getPeriodTitle(dateRange)}
+                    </CardTitle>
+                    <CardDescription className="text-xs md:text-sm">
+                      5 produk dengan penjualan tertinggi • {topProductsInfo.timing.period}
+                    </CardDescription>
+                  </div>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </div>
               </CardHeader>
               <CardContent className="p-3 md:p-6 pt-0">
+                <div className="mb-4 p-2 bg-blue-50 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Calendar className="h-3 w-3 text-blue-600" />
+                    <span className="text-xs font-medium text-blue-800">Distribusi Waktu Penjualan:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {topProductsInfo.timing.timeDetails.map((time, index) => (
+                      <Badge key={index} variant="outline" className="text-xs bg-white">
+                        {time}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="space-y-2 md:space-y-4">
-                  {topProductsData.map((product, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 md:p-4 bg-gray-50 rounded-lg min-w-0">
+                  {topProductsInfo.products.map((product, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 md:p-4 bg-gray-50 rounded-lg min-w-0 border">
                       <div className="flex items-center space-x-2 md:space-x-4 min-w-0 flex-1">
                         <div className="w-5 h-5 md:w-8 md:h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                           {index + 1}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-xs md:text-base truncate">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">{product.sold} unit terjual</p>
+                          <div className="flex items-center space-x-2 mb-1">
+                            <p className="font-medium text-xs md:text-base truncate">{product.name}</p>
+                            <Badge variant="secondary" className="text-xs">
+                              {product.category}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+                            <span>{product.sold} unit terjual</span>
+                            <span>•</span>
+                            <span className="flex items-center space-x-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{product.peakTime}</span>
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className="text-xs text-green-600 font-medium">
+                              {product.trend} vs periode lalu
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              • Terakhir: {product.lastSold}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0 ml-2">
@@ -635,30 +827,48 @@ const Analytics = () => {
               <CardHeader className="p-3 md:p-6">
                 <CardTitle className="text-base md:text-xl">Performa Kategori</CardTitle>
                 <CardDescription className="text-xs md:text-sm">
-                  Detail penjualan per kategori - {getPeriodTitle(dateRange)}
+                  Breakdown penjualan per kategori dengan detail produk - {getPeriodTitle(dateRange)}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-3 md:p-6 pt-0">
-                <div className="space-y-2 md:space-y-4">
+                <div className="space-y-3 md:space-y-4">
                   {categoryData.map((category, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 md:p-4 border rounded-lg min-w-0">
-                      <div className="flex items-center space-x-2 md:space-x-4 min-w-0 flex-1">
-                        <div
-                          className="w-2 h-2 md:w-4 md:h-4 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-xs md:text-base truncate">{category.name}</p>
-                          <p className="text-xs text-muted-foreground">{category.value}% dari total penjualan</p>
+                    <div key={index} className="border rounded-lg p-3 md:p-4 min-w-0">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
+                          <div
+                            className="w-3 h-3 md:w-4 md:h-4 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <p className="font-medium text-sm md:text-base truncate">{category.name}</p>
+                              <Badge variant="outline" className="text-xs">
+                                {category.value}%
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{category.description}</p>
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0 ml-2">
+                          <p className="font-bold text-xs md:text-base">Rp {category.sales.toLocaleString('id-ID')}</p>
+                          <div className="w-12 md:w-24 bg-gray-200 rounded-full h-1.5 md:h-2 mt-1">
+                            <div
+                              className="bg-primary h-1.5 md:h-2 rounded-full transition-all"
+                              style={{ width: `${category.value}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0 ml-2">
-                        <p className="font-bold text-xs md:text-base">Rp {category.sales.toLocaleString('id-ID')}</p>
-                        <div className="w-12 md:w-24 bg-gray-200 rounded-full h-1.5 md:h-2 mt-1">
-                          <div
-                            className="bg-primary h-1.5 md:h-2 rounded-full transition-all"
-                            style={{ width: `${category.value}%` }}
-                          />
+                      
+                      <div className="border-t pt-2 mt-2">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Produk Utama:</p>
+                        <div className="grid grid-cols-2 gap-1">
+                          {category.items.map((item, itemIndex) => (
+                            <Badge key={itemIndex} variant="secondary" className="text-xs justify-start">
+                              {item}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
                     </div>
