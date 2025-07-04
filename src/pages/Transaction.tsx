@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import AppSidebar from '@/components/AppSidebar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -292,8 +293,25 @@ const Transaction = () => {
             </div>
           </div>
 
-          {/* Fixed Cart Section - Enhanced Mobile Style */}
+          {/* Fixed Cart Section - Shopee Style */}
           <div className="fixed bottom-0 left-0 right-0 lg:absolute lg:right-0 lg:top-0 lg:bottom-auto w-full lg:w-80 xl:w-96 bg-white border-t lg:border-l lg:border-t-0 flex flex-col z-10">
+            {/* Mobile Cart Header - Only show on mobile */}
+            <div className="lg:hidden p-3 border-b flex items-center justify-between bg-white">
+              <h2 className="text-base font-semibold flex items-center">
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Keranjang ({getTotalItems()})
+              </h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearCart}
+                className="text-red-600"
+                disabled={cart.length === 0}
+              >
+                Kosongkan
+              </Button>
+            </div>
+
             {/* Desktop Cart Header */}
             <div className="hidden lg:block p-4 border-b">
               <div className="flex items-center justify-between">
@@ -304,8 +322,8 @@ const Transaction = () => {
               </div>
             </div>
 
-            {/* Cart Items - Scrollable (Hidden on mobile when empty) */}
-            <div className={`flex-1 overflow-auto ${cart.length === 0 ? 'hidden lg:block' : 'max-h-40 lg:max-h-none'}`}>
+            {/* Cart Items - Scrollable */}
+            <div className="flex-1 overflow-auto max-h-40 lg:max-h-none">
               {cart.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">
                   <ShoppingCart className="mx-auto h-8 w-8 mb-2 opacity-50" />
@@ -356,92 +374,39 @@ const Transaction = () => {
               )}
             </div>
 
-            {/* Enhanced Mobile Cart Summary - Always Visible */}
-            {cart.length > 0 ? (
-              <div className="border-t bg-white">
-                {/* Mobile Cart Header - Only show when cart has items */}
-                <div className="lg:hidden px-4 py-3 border-b flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="relative mr-3">
-                      <ShoppingCart className="h-5 w-5 text-orange-500" />
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                        {getTotalItems()}
-                      </span>
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      {getTotalItems()} item dipilih
-                    </span>
+            {/* Fixed Cart Summary - Always Visible */}
+            {cart.length > 0 && (
+              <div className="border-t p-3 bg-white">
+                <div className="space-y-2 mb-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal ({getTotalItems()} item)</span>
+                    <span>Rp {getTotalPrice().toLocaleString('id-ID')}</span>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Separator />
+                  <div className="flex justify-between font-semibold">
+                    <span>Total</span>
+                    <span>Rp {getTotalPrice().toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
+
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
                     onClick={clearCart}
-                    className="text-red-600 text-sm"
+                    className="flex-1 hidden lg:flex"
+                    size="sm"
                   >
-                    Hapus
+                    Kosongkan
+                  </Button>
+                  <Button
+                    onClick={() => setIsPaymentOpen(true)}
+                    className="flex-1 lg:flex-1"
+                    size="sm"
+                  >
+                    <Receipt className="mr-2 h-4 w-4" />
+                    Bayar
                   </Button>
                 </div>
-
-                {/* Enhanced Checkout Section */}
-                <div className="p-4">
-                  <div className="hidden lg:block space-y-2 mb-3">
-                    <div className="flex justify-between text-sm">
-                      <span>Subtotal ({getTotalItems()} item)</span>
-                      <span>Rp {getTotalPrice().toLocaleString('id-ID')}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-semibold">
-                      <span>Total</span>
-                      <span>Rp {getTotalPrice().toLocaleString('id-ID')}</span>
-                    </div>
-                  </div>
-
-                  {/* Mobile-style Checkout Button */}
-                  <div className="flex lg:hidden items-center justify-between bg-gradient-to-r from-orange-500 to-red-500 rounded-lg p-3 text-white">
-                    <div className="flex flex-col">
-                      <span className="text-lg font-bold">
-                        Rp{getTotalPrice().toLocaleString('id-ID')}
-                      </span>
-                      <span className="text-xs opacity-90">
-                        {getTotalItems()} item
-                      </span>
-                    </div>
-                    <Button
-                      onClick={() => setIsPaymentOpen(true)}
-                      className="bg-white text-orange-600 hover:bg-gray-100 font-semibold px-6 py-2 rounded-lg shadow-sm"
-                      size="sm"
-                    >
-                      Checkout
-                    </Button>
-                  </div>
-
-                  {/* Desktop Buttons */}
-                  <div className="hidden lg:flex space-x-2">
-                    <Button
-                      variant="outline"
-                      onClick={clearCart}
-                      className="flex-1"
-                      size="sm"
-                    >
-                      Kosongkan
-                    </Button>
-                    <Button
-                      onClick={() => setIsPaymentOpen(true)}
-                      className="flex-1"
-                      size="sm"
-                    >
-                      <Receipt className="mr-2 h-4 w-4" />
-                      Bayar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Empty Cart Mobile State */
-              <div className="lg:hidden border-t bg-gray-50 p-4 text-center">
-                <ShoppingCart className="mx-auto h-8 w-8 mb-2 text-gray-400" />
-                <p className="text-sm text-gray-500">Keranjang masih kosong</p>
-                <p className="text-xs text-gray-400">Pilih produk untuk mulai berbelanja</p>
               </div>
             )}
           </div>
